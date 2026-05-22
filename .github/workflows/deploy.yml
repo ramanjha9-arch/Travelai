@@ -22,9 +22,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug Before Replace
+        run: |
+          grep "YOUR_GEMINI_API_KEY_HERE" index.html || echo "Placeholder NOT found"
+
       - name: Inject API Key
         run: |
-          sed -i "s/YOUR_GEMINI_API_KEY_HERE/${{ secrets.GEMINI_API_KEY }}/g" index.html
+          API_KEY="${{ secrets.GEMINI_API_KEY }}"
+          sed -i "s|YOUR_GEMINI_API_KEY_HERE|$API_KEY|g" index.html
+
+      - name: Debug After Replace
+        run: |
+          grep "AIza" index.html || echo "API key NOT injected"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
