@@ -1,19 +1,22 @@
-name: Deploy to GitHub Pages
+name: Deploy TravelBuddy AI to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -22,18 +25,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug Before Replace
+      - name: Inject Gemini API Key from GitHub Secret
         run: |
-          grep "YOUR_GEMINI_API_KEY_HERE" index.html || echo "Placeholder NOT found"
-
-      - name: Inject API Key
-        run: |
-          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-          sed -i "s|YOUR_GEMINI_API_KEY_HERE|$GEMINI_API_KEY|g" index.html
-
-      - name: Debug After Replace
-        run: |
-          grep "AIza" index.html || echo "API key NOT injected"
+          echo "🔑 Injecting Gemini API key into index.html..."
+          sed -i "s|REPLACE_ME_WITH_KEY|${{ secrets.GEMINI_API_KEY }}|g" index.html
+          echo "✅ Key injected successfully"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
