@@ -1,787 +1,837 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#f97316"/>
-<title>TravelBuddy AI — Smart Travel Planner by Raman Jha</title>
-<meta name="description" content="AI-powered travel planner. Gemini 2.5 Flash. Free, no login."/>
-<!-- ═══ GITHUB ACTIONS injects key here via sed ═══ -->
-<meta name="gemini-api-key" content="REPLACE_ME_WITH_KEY"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-font-family:'Plus Jakarta Sans',sans-serif;
-background:#0a0f1e;
-color:#f1f5f9;
-min-height:100vh;
-overflow-x:hidden
-}
-:root{
---or:#f97316;
---or-d:#ea580c;
---bl:#0ea5e9;
---dk:#0a0f1e;
---dk2:#0f172a;
---dk3:#1e293b;
---tx:#f1f5f9;
---mu:rgba(241,245,249,.65);
---gb:rgba(255,255,255,.04);
---gbr:rgba(255,255,255,.09);
---r:14px;
-}
-button{
-cursor:pointer;
-border:none;
-background:none;
-color:inherit;
-font-family:inherit
-}
-input,textarea{
-font-family:inherit;
-outline:none
-}
-a{
-text-decoration:none;
-color:inherit
-}
-.display{
-font-family:'Playfair Display',serif
-}
-.grad{
-background:linear-gradient(135deg,#f97316,#facc15,#fb923c);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-background-clip:text
-}
-.glass{
-background:var(--gb);
-backdrop-filter:blur(20px);
-border:1px solid var(--gbr)
-}
-.wrap{
-width:min(1200px,92%);
-margin:auto
-}
-.wrap-sm{
-width:min(900px,92%);
-margin:auto
-}
-.page{
-display:none;
-padding:2rem 0 5rem
-}
-.page.on{
-display:block
-}
-.btn{
-padding:.9rem 1.2rem;
-border-radius:14px;
-font-weight:700;
-transition:.25s
-}
-.btn-or{
-background:#f97316;
-color:#fff
-}
-.btn-or:hover{
-background:#ea580c
-}
-.btn-gl{
-border:1px solid rgba(255,255,255,.12)
-}
-.btn-sm{
-padding:.7rem 1rem;
-font-size:.92rem
-}
-#topbar{
-position:sticky;
-top:0;
-z-index:99;
-background:rgba(10,15,30,.88);
-backdrop-filter:blur(20px);
-border-bottom:1px solid rgba(255,255,255,.05)
-}
-.topbar-inner{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:1rem 0
-}
-.logo{
-display:flex;
-align-items:center;
-gap:.75rem;
-font-weight:800
-}
-.logo-icon{
-font-size:1.5rem
-}
-.topbar-nav{
-display:flex;
-gap:1.4rem
-}
-.tnav{
-opacity:.75
-}
-.tnav.on,
-.tnav:hover{
-opacity:1;
-color:#f97316
-}
-.hero{
-padding:6rem 0 5rem
-}
-.hero-content{
-width:min(950px,92%);
-margin:auto;
-text-align:center
-}
-.hero-h1{
-font-size:4rem;
-line-height:1.05
-}
-.hero-sub{
-margin-top:1.2rem;
-font-size:1.15rem;
-color:var(--mu)
-}
-.hero-badge{
-display:inline-flex;
-padding:.65rem 1rem;
-border-radius:999px;
-background:rgba(249,115,22,.12);
-margin-bottom:1.5rem;
-font-size:.9rem
-}
-.hero-bar{
-margin-top:2rem;
-display:grid;
-grid-template-columns:1fr 1fr 170px auto;
-gap:1rem;
-padding:1rem;
-border-radius:22px;
-background:rgba(255,255,255,.04);
-border:1px solid rgba(255,255,255,.08)
-}
-.hb-field input{
-width:100%;
-padding:.95rem;
-border:none;
-background:#111827;
-border-radius:14px;
-color:#fff
-}
-.fc{
-margin-top:2rem
-}
-.frow{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:1rem
-}
-.fg{
-display:flex;
-flex-direction:column;
-gap:.6rem
-}
-.lbl{
-font-size:.92rem;
-color:var(--mu)
-}
-.inp{
-padding:1rem;
-border-radius:14px;
-border:1px solid rgba(255,255,255,.08);
-background:#111827;
-color:#fff
-}
-#result-view{
-padding:1.5rem;
-border-radius:22px;
-background:rgba(255,255,255,.03);
-border:1px solid rgba(255,255,255,.07)
-}
-#tp-itinerary{
-margin-top:1.5rem;
-line-height:1.8
-}
-.chat-box{
-margin-top:2rem;
-padding:1rem;
-border-radius:22px;
-background:rgba(255,255,255,.03);
-border:1px solid rgba(255,255,255,.07)
-}
-.chat-msgs{
-height:450px;
-overflow:auto;
-padding:1rem
-}
-.chat-inp-row{
-display:flex;
-gap:1rem;
-margin-top:1rem
-}
-.chat-inp{
-flex:1;
-padding:1rem;
-border-radius:14px;
-border:1px solid rgba(255,255,255,.08);
-background:#111827;
-color:#fff
-}
-.cm{
-margin-bottom:1rem;
-display:flex
-}
-.cm.ai{
-justify-content:flex-start
-}
-.cm.usr{
-justify-content:flex-end
-}
-.cm-bub{
-padding:1rem;
-border-radius:16px;
-max-width:80%;
-background:#1e293b;
-line-height:1.7
-}
-.cm.usr .cm-bub{
-background:#f97316
-}
-.g4{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:1.2rem;
-margin-top:2rem
-}
-.exp-card{
-overflow:hidden;
-border-radius:18px
-}
-.exp-img{
-width:100%;
-height:220px;
-object-fit:cover
-}
-.exp-body{
-padding:1rem
-}
-.exp-body p{
-margin-top:.5rem;
-color:var(--mu)
-}
-#toast{
-position:fixed;
-bottom:20px;
-right:20px;
-background:#111827;
-padding:1rem 1.2rem;
-border-radius:14px;
-opacity:0;
-pointer-events:none;
-transition:.3s;
-z-index:9999
-}
-#toast.on{
-opacity:1
-}
-#lov{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.65);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999
-}
-.lov-box{
-padding:2rem;
-border-radius:20px;
-background:#111827;
-text-align:center
-}
-.lov-plane{
-font-size:3rem;
-margin-bottom:1rem
-}
-#api-banner{
-padding:1rem;
-background:#111827;
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:1rem;
-flex-wrap:wrap;
-border-bottom:1px solid rgba(255,255,255,.08)
-}
-.key-field{
-padding:.9rem 1rem;
-border-radius:12px;
-border:none;
-background:#1e293b;
-color:#fff;
-min-width:280px
-}
-@media(max-width:768px){
-.hero-h1{
-font-size:2.7rem
-}
-.hero-bar{
-grid-template-columns:1fr
-}
-.frow{
-grid-template-columns:1fr
-}
-.topbar-nav{
-display:none
-}
-}
-</style>
-</head>
-<body>
-<div id="api-banner">
-<div>
-<div id="blabel">🔑 Enter Gemini API Key</div>
-<div id="bsub" style="font-size:.9rem;color:var(--mu)">
-Web crawl fallback available
-</div>
-</div>
-<div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
-<input id="key-inp" class="key-field" type="password" placeholder="Paste Gemini API Key"/>
-<button class="btn btn-or btn-sm" onclick="saveKey()">Activate AI</button>
-<button class="btn btn-gl btn-sm" id="clear-btn" style="display:none" onclick="clearKey()">Clear</button>
-<a href="https://aistudio.google.com/app/apikey" target="_blank">
-Get Key →
-</a>
-</div>
-</div>
-<nav id="topbar">
-<div class="wrap topbar-inner">
-<div class="logo" onclick="nav('home')">
-<div class="logo-icon">✈️</div>
-<div class="grad">TravelBuddy AI</div>
-</div>
-<div class="topbar-nav">
-<a class="tnav on" onclick="nav('home')">Home</a>
-<a class="tnav" onclick="nav('planner')">Plan Trip</a>
-<a class="tnav" onclick="nav('chat')">AI Chat</a>
-<a class="tnav" onclick="nav('explore')">Explore</a>
-<a class="tnav" onclick="nav('about')">About</a>
-</div>
-<button class="btn btn-or btn-sm" onclick="nav('planner')">
-✨ Plan Free
-</button>
-</div>
-</nav>
-<div id="page-home" class="page on">
-<div class="hero">
-<div class="hero-content">
-<div class="hero-badge">
-✨ Gemini 2.5 Flash + AI Travel Intelligence
-</div>
-<h1 class="hero-h1">
-Your AI Travel<br>
-<span class="grad">Dream Planner</span>
-</h1>
-<p class="hero-sub">
-Plan smarter trips with AI-generated itineraries,
-budget planning, hotels, hidden gems and travel insights.
-</p>
-<div class="hero-bar">
-<div class="hb-field">
-<input id="h-from" placeholder="From City"/>
-</div>
-<div class="hb-field">
-<input id="h-to" placeholder="Destination"/>
-</div>
-<div class="hb-field">
-<input id="h-bgt" type="number" placeholder="Budget ₹"/>
-</div>
-<button class="btn btn-or" onclick="heroSearch()">
-🔍 Plan Trip
-</button>
-</div>
-</div>
-</div>
-</div>
-<div id="page-planner" class="page">
-<div class="wrap-sm">
-<h1 class="display" style="font-size:2.7rem">
-AI Travel <span class="grad">Planner</span>
-</h1>
-<div class="fc">
-<div class="frow">
-<div class="fg">
-<label class="lbl">From</label>
-<input id="f-from" class="inp" value="Mumbai"/>
-</div>
-<div class="fg">
-<label class="lbl">Destination</label>
-<input id="f-dest" class="inp" placeholder="Goa"/>
-</div>
-</div>
-<div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap">
-<button class="btn btn-or" onclick="generateTrip()">
-✨ Generate AI Trip
-</button>
-<button class="btn btn-gl" onclick="downloadPDF()">
-📄 Export PDF
-</button>
-</div>
-</div>
-<div id="result-view" style="display:none;margin-top:2rem">
-<h2 class="display" id="r-title"></h2>
-<p id="r-meta" style="margin-top:.4rem;color:var(--mu)"></p>
-<div id="tp-itinerary"></div>
-</div>
-</div>
-</div>
-<div id="page-chat" class="page">
-<div class="wrap-sm">
-<h1 class="display">
-AI Travel <span class="grad">Assistant</span>
-</h1>
-<div class="chat-box">
-<div class="chat-msgs" id="chat-msgs"></div>
-<div class="chat-inp-row">
-<button class="btn btn-or btn-sm" onclick="sendChat()">
-Send ↗
-</button>
-</div>
-</div>
-</div>
-</div>
-<div id="page-explore" class="page">
-<div class="wrap">
-<h1 class="display">
-Explore <span class="grad">Destinations</span>
-</h1>
-<div class="g4" id="exp-grid"></div>
-</div>
-</div>
-<div id="page-about" class="page">
-<div class="wrap-sm">
-<h1 class="display">
-About <span class="grad">TravelBuddy AI</span>
-</h1>
-<p style="margin-top:1rem;color:var(--mu);line-height:1.8">
-TravelBuddy AI is a modern AI-powered travel planning platform
-using Gemini AI, PDF exports, web fallback intelligence,
-smart itinerary generation and responsive mobile-first architecture.
-</p>
-</div>
-</div>
-<div id="lov">
-<div class="lov-box">
-<div class="lov-plane">✈️</div>
-<h3 class="display grad">Planning Your Trip...</h3>
-<p style="margin-top:.6rem">Generating itinerary with AI</p>
-</div>
-</div>
-<div id="toast"></div>
 <script>
-/* =========================================
-API KEY HANDLING
-========================================= */
-const metaKey =
-document.querySelector('meta[name="gemini-api-key"]')?.content || "";
-let GEMINI_API_KEY =
-localStorage.getItem("gemini_api_key") || "";
-if(!GEMINI_API_KEY && metaKey !== "REPLACE_ME_WITH_KEY"){
-GEMINI_API_KEY = metaKey;
+// ═══════════════════════════════════════════════════════
+// TravelBuddy AI — Engine  |  Built by Raman Jha
+// Gemini 2.5 Flash Preview + Lite + 1.5 Flash + WebCrawl
+// GitHub Actions injects key via <meta name="gemini-api-key">
+// ═══════════════════════════════════════════════════════
+
+// ── 1. API KEY MANAGEMENT ─────────────────────────────
+// Priority: 1) <meta> tag injected by GitHub Actions  2) localStorage  3) Web Crawl
+function getKey() {
+  const meta = document.querySelector('meta[name="gemini-api-key"]');
+  if (meta && meta.content && meta.content.startsWith('AIza')) return meta.content;
+  return localStorage.getItem('tb_key') || null;
 }
-function saveKey(){
-const val =
-document.getElementById("key-inp").value.trim();
-if(!val){
-toast("Please enter API key");
-return;
+
+function onKeyType() {
+  const v = document.getElementById('key-inp').value.trim();
+  document.getElementById('save-btn').disabled = v.length < 5;
 }
-GEMINI_API_KEY = val;
-localStorage.setItem("gemini_api_key", val);
-document.getElementById("clear-btn").style.display =
-"inline-flex";
-document.getElementById("blabel").innerHTML =
-"✅ Gemini AI Activated";
-document.getElementById("bsub").innerHTML =
-"Full AI mode enabled";
-toast("✅ API key saved");
+
+function saveKey() {
+  const v = document.getElementById('key-inp').value.trim();
+  if (!v) { toast('⚠️ Paste your Gemini API key first', 'warn'); return; }
+  if (!v.startsWith('AIza')) { toast('⚠️ Key should start with AIzaSy…', 'warn'); return; }
+  localStorage.setItem('tb_key', v);
+  updateBanner();
+  toast('🟢 Gemini AI activated!');
 }
-function clearKey(){
-localStorage.removeItem("gemini_api_key");
-GEMINI_API_KEY = "";
-document.getElementById("key-inp").value = "";
-document.getElementById("blabel").innerHTML =
-"⚡ Web Fallback Mode";
-document.getElementById("bsub").innerHTML =
-"Works without API key";
-document.getElementById("clear-btn").style.display =
-"none";
-toast("API key cleared");
+
+function clearKey() {
+  localStorage.removeItem('tb_key');
+  document.getElementById('key-inp').value = '';
+  updateBanner();
+  toast('🕸️ Key cleared. Web Crawl Fallback active.');
 }
-/* =========================================
-NAVIGATION
-========================================= */
-function nav(page){
-document.querySelectorAll(".page").forEach(p=>{
-p.classList.remove("on");
-});
-document.getElementById("page-" + page)
-.classList.add("on");
-document.querySelectorAll(".tnav")
-.forEach(el=>el.classList.remove("on"));
-event?.target?.classList?.add("on");
+
+function toggleVis() {
+  const inp = document.getElementById('key-inp');
+  const btn = document.getElementById('vis-btn');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
 }
-/* =========================================
-LOADING
-========================================= */
-function showLoading(show){
-document.getElementById("lov").style.display =
-show ? "flex" : "none";
+
+function updateBanner() {
+  const key = getKey();
+  const ban = document.getElementById('api-banner');
+  const dot = document.getElementById('bdot');
+  const lbl = document.getElementById('blabel');
+  const sub = document.getElementById('bsub');
+  const saveBtn  = document.getElementById('save-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  const inp = document.getElementById('key-inp');
+
+  // Check if key came from meta tag (GitHub Actions injection)
+  const metaKey = document.querySelector('meta[name="gemini-api-key"]');
+  const fromMeta = metaKey && metaKey.content && metaKey.content.startsWith('AIza');
+
+  if (fromMeta) {
+    ban.className = 'mode-meta';
+    dot.className = 'banner-dot dot-ai';
+    lbl.innerHTML = '🔵 <strong style="color:#38bdf8">GitHub Secret Active</strong> — Gemini 2.5 Flash powered by injected deployment key';
+    sub.textContent = 'Key injected securely via GitHub Actions deploy.yml — not stored in code';
+    inp.value = '••••••••••••••••••••••••••';
+    inp.disabled = true;
+    saveBtn.style.display = 'none';
+    clearBtn.style.display = 'none';
+    document.getElementById('ai-mode-stat').textContent = '🔵 GitHub';
+  } else if (key) {
+    ban.className = 'mode-local';
+    dot.className = 'banner-dot dot-ai';
+    lbl.innerHTML = '🟢 <strong style="color:#4ade80">Gemini AI Active</strong> — Gemini 2.5 Flash is powering your plans';
+    sub.textContent = 'Key saved in browser localStorage. Click 🗑 to clear.';
+    inp.value = key.slice(0,8) + '••••••••••••' + key.slice(-4);
+    inp.classList.add('set');
+    saveBtn.style.display = 'none';
+    clearBtn.style.display = 'inline-flex';
+    document.getElementById('ai-mode-stat').textContent = '🤖 Gemini';
+  } else {
+    ban.className = 'mode-none';
+    dot.className = 'banner-dot dot-none';
+    lbl.innerHTML = '🔑 <strong style="color:#fb923c">Paste your Gemini API Key</strong> to activate full AI planning';
+    sub.textContent = 'No key? Web Crawl Fallback works automatically. Get free key →';
+    inp.value = '';
+    inp.disabled = false;
+    inp.classList.remove('set');
+    saveBtn.style.display = 'inline-flex';
+    clearBtn.style.display = 'none';
+    document.getElementById('ai-mode-stat').textContent = '🕸️ Crawl';
+  }
+
+  // Update mode labels
+  const modeLabel = fromMeta ? '✅ GitHub Secret Key Active — Gemini 2.5 Flash' :
+                    key ? '✅ Gemini 2.5 Flash Active' :
+                    '🕸️ Web Crawl Mode — paste key above to enable AI';
+  const el = document.getElementById('planner-sub');
+  if (el) el.textContent = modeLabel;
+  const cs = document.getElementById('chat-sub');
+  if (cs) cs.textContent = fromMeta || key ? 'Gemini 2.5 Flash Active' : 'Web Crawl Mode Active';
 }
-/* =========================================
-TOAST
-========================================= */
-function toast(msg){
-const t = document.getElementById("toast");
-t.innerHTML = msg;
-t.classList.add("on");
-setTimeout(()=>{
-t.classList.remove("on");
-},2500);
-}
-/* =========================================
-MARKDOWN TO HTML
-========================================= */
-function markdownToHtml(text){
-return text
-.replace(/^### (.*$)/gim,'<h3>$1</h3>')
-.replace(/^## (.*$)/gim,'<h2>$1</h2>')
-.replace(/^# (.*$)/gim,'<h1>$1</h1>')
-.replace(/^\- (.*$)/gim,'<li>$1</li>')
-.replace(/\n/g,'<br>');
-}
-/* =========================================
-FALLBACK AI
-========================================= */
-function fakeFallback(){
-return `
-# AI Travel Plan
-## Day 1
-- Arrival
-- Explore nearby places
-- Local dinner recommendation
-## Day 2
-- Main attractions
-- Food exploration
-- Hidden gems
-## Budget Tips
-- Use local transport
-- Prebook tickets
-- Avoid peak timing
-`;
-}
-/* =========================================
-REAL GEMINI CALL
-========================================= */
-async function callGemini(prompt){
-if(!GEMINI_API_KEY){
-return fakeFallback(prompt);
-}
-try{
-const res = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-contents:[
-{
-parts:[
-{
-text:prompt
-}
-]
-}
-]
-})
-}
-);
-const data = await res.json();
-return data?.candidates?.[0]?.content?.parts?.[0]?.text
-|| fakeFallback(prompt);
-}catch(err){
-console.error(err);
-return fakeFallback(prompt);
-}
-}
-/* =========================================
-HERO SEARCH
-========================================= */
-function heroSearch(){
-document.getElementById("f-from").value =
-document.getElementById("h-from").value || "Mumbai";
-document.getElementById("f-dest").value =
-document.getElementById("h-to").value || "Goa";
-nav("planner");
-}
-/* =========================================
-GENERATE TRIP
-========================================= */
-async function generateTrip(){
-const from =
-document.getElementById("f-from").value || "Mumbai";
-const dest =
-document.getElementById("f-dest").value || "Goa";
-showLoading(true);
-const prompt = `
-Create a premium travel itinerary.
-From: ${from}
-Destination: ${dest}
-Include:
-- Day wise itinerary
-- Food recommendations
-- Hotel area suggestions
-- Approx budget
-- Transport tips
-- Hidden gems
-`;
-const aiText = await callGemini(prompt);
-document.getElementById("result-view").style.display =
-"block";
-document.getElementById("r-title").innerText =
-`${dest} AI Itinerary`;
-document.getElementById("r-meta").innerText =
-`${from} → ${dest}`;
-document.getElementById("tp-itinerary").innerHTML =
-markdownToHtml(aiText);
-showLoading(false);
-toast("✨ AI itinerary generated");
-}
-/* =========================================
-AI CHAT
-========================================= */
-async function sendChat(){
-const inp =
-document.getElementById("ci");
-const val = inp.value.trim();
-if(!val) return;
-const box =
-document.getElementById("chat-msgs");
-box.innerHTML += `
-<div class="cm usr">
-<div class="cm-bub">${val}</div>
-</div>
-`;
-inp.value = "";
-box.scrollTop = box.scrollHeight;
-const aiReply =
-await callGemini(val);
-box.innerHTML += `
-<div class="cm ai">
-<div class="cm-bub">
-${markdownToHtml(aiReply)}
-</div>
-</div>
-`;
-box.scrollTop = box.scrollHeight;
-}
-function ckd(e){
-if(e.key === "Enter"){
-sendChat();
-}
-}
-/* =========================================
-EXPLORE DESTINATIONS
-========================================= */
-const destinations = [
-{
-name:"Goa",
-img:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200",
-desc:"Beaches, nightlife & vibrant culture"
-},
-{
-name:"Bali",
-img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200",
-desc:"Luxury villas, waterfalls & temples"
-},
-{
-name:"Paris",
-img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200",
-desc:"Romantic city with iconic landmarks"
-},
-{
-name:"Dubai",
-img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200",
-desc:"Luxury shopping & futuristic skyline"
-}
+
+// ── 2. GEMINI MODELS (updated list) ──────────────────
+// Primary: 2.5 Flash Preview → Fallback1: 2.5 Flash Lite Preview → Fallback2: 1.5 Flash
+const MODELS = [
+  'gemini-2.5-flash-preview-05-20',       // Primary: Gemini 2.5 Flash Preview
+  'gemini-2.5-flash-lite-preview-06-17',  // Fallback 1: Gemini 2.5 Flash Lite Preview
+  'gemini-1.5-flash',                      // Fallback 2: Stable
 ];
-function loadExplore(){
-const grid =
-document.getElementById("exp-grid");
-grid.innerHTML =
-destinations.map(d=>`
-<div class="exp-card glass">
-<img src="${d.img}" class="exp-img"/>
-<div class="exp-body">
-<h3>${d.name}</h3>
-<p>${d.desc}</p>
-</div>
-</div>
-`).join("");
+
+async function callGemini(prompt, sys, idx = 0) {
+  const key = getKey();
+  if (!key) throw new Error('NO_KEY');
+  const model = MODELS[Math.min(idx, MODELS.length - 1)];
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: sys }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+    }),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (res.status === 429 && idx < MODELS.length - 1) {
+    console.warn(`[AI] ${model} rate limited → trying next model`);
+    return callGemini(prompt, sys, idx + 1);
+  }
+  if (!res.ok) {
+    const t = await res.text();
+    if (idx < MODELS.length - 1) return callGemini(prompt, sys, idx + 1);
+    throw new Error(`Gemini ${res.status}: ${t.slice(0,150)}`);
+  }
+  const d = await res.json();
+  const txt = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!txt) throw new Error('Empty Gemini response');
+  return txt;
 }
-/* =========================================
-PDF EXPORT
-========================================= */
-async function downloadPDF(){
-if(!window.jspdf){
-toast("PDF library missing");
-return;
+
+function xJ(raw) {
+  let s = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a !== -1 && b > a) s = s.slice(a, b + 1);
+  return s;
 }
-const { jsPDF } = window.jspdf;
-const doc = new jsPDF();
-const title =
-document.getElementById("r-title").innerText;
-const content =
-document.getElementById("tp-itinerary").innerText;
-doc.setFontSize(22);
-doc.text(title,20,20);
-doc.setFontSize(12);
-const lines =
-doc.splitTextToSize(content,170);
-doc.text(lines,20,40);
-doc.save("travelbuddy-ai-itinerary.pdf");
-toast("📄 PDF exported");
+
+// ── 3. WEB CRAWL FALLBACK ─────────────────────────────
+let fbUsed = false;
+
+async function fetchWiki(dest) {
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(dest + ' tourism')}`, { signal: AbortSignal.timeout(7000) });
+    if (r.ok) { const d = await r.json(); if (d.extract) return d.extract; }
+    const r2 = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(dest)}`, { signal: AbortSignal.timeout(7000) });
+    if (r2.ok) { const d2 = await r2.json(); return d2.extract || ''; }
+  } catch {}
+  return '';
 }
-/* =========================================
-INIT
-========================================= */
-document.addEventListener("DOMContentLoaded", ()=>{
-if(GEMINI_API_KEY){
-document.getElementById("blabel").innerHTML =
-"✅ Gemini AI Activated";
-document.getElementById("bsub").innerHTML =
-"Full AI mode enabled";
-document.getElementById("clear-btn").style.display =
-"inline-flex";
-}else{
-document.getElementById("blabel").innerHTML =
-"⚡ Web Fallback Mode";
-document.getElementById("bsub").innerHTML =
-"Works even without API key";
+
+async function webCrawl(prefs) {
+  fbUsed = true;
+  document.getElementById('lov-title').textContent = 'Web Crawl Mode…';
+  document.getElementById('lov-sub').textContent = 'Fetching live data from Wikipedia & travel APIs';
+  document.getElementById('ls1').textContent = '🌐 Fetching Wikipedia travel info…';
+  document.getElementById('ls2').textContent = '🌍 Loading destination knowledge…';
+  document.getElementById('ls3').textContent = '📊 Calculating budget breakdown…';
+  document.getElementById('ls4').textContent = '🗺️ Building smart itinerary…';
+  document.getElementById('ls5').textContent = '💎 Adding hidden gems…';
+  const wiki = await fetchWiki(prefs.destination);
+  return buildFallback(prefs, wiki);
 }
-loadExplore();
-toast("✈️ TravelBuddy AI Ready");
-});
+
+function buildFallback(p, wiki) {
+  const dest = p.destination, from = p.sourceCity, budget = p.budget;
+  const days = p.duration || 5;
+  const isIndia = p.tripType === 'india';
+  const flB = Math.min(Math.round(budget * .25), isIndia ? 8000 : 35000);
+  const hn  = p.hotelType === 'luxury' ? Math.round(budget * .12 / days) :
+              p.hotelType === 'budget'  ? Math.round(budget * .06 / days) : Math.round(budget * .09 / days);
+  const hT = hn * days, fd = Math.round(budget * .15), ac = Math.round(budget * .12);
+  const tr = Math.round(budget * .08), sh = Math.round(budget * .06);
+  const vi = isIndia ? 0 : 3500, ins = Math.round(budget * .02), em = Math.round(budget * .05);
+  const total = flB + hT + fd + ac + tr + sh + vi + ins + em;
+  const DB = getDB(dest);
+  const summary = wiki ? wiki.slice(0, 260) + '…' : `Discover the magic of ${dest} — ${DB.vibe}.`;
+  const dayPlans = [];
+  for (let d = 1; d <= days; d++) {
+    const dt = new Date(p.startDate); dt.setDate(dt.getDate() + d - 1);
+    const actsD = DB.activities.slice((d-1)*2, (d-1)*2+2);
+    if (!actsD.length) actsD.push(...DB.activities.slice(0, 2));
+    dayPlans.push({
+      day: d, date: dt.toISOString().split('T')[0],
+      title: DB.dayTitles[d-1] || `Day ${d} — Explore ${dest}`,
+      description: DB.dayDescs[d-1] || `Explore the best of ${dest}.`,
+      activities: actsD.map((a, i) => ({ id: `a${d}_${i}`, ...a, cost: Math.round(ac / days / 2) })),
+      meals: [
+        { type: 'breakfast', restaurant: DB.restaurants[0] || 'Local café', cuisine: DB.cuisine, cost: Math.round(fd/days/4), recommendation: DB.mustEat[0] || 'Local special' },
+        { type: 'lunch',     restaurant: DB.restaurants[1] || 'Popular place', cuisine: DB.cuisine, cost: Math.round(fd/days/3), recommendation: DB.mustEat[1] || 'Chef special' },
+        { type: 'dinner',    restaurant: DB.restaurants[2] || 'Restaurant', cuisine: DB.cuisine, cost: Math.round(fd/days/2.5), recommendation: DB.mustEat[2] || 'Must-try dish' },
+      ],
+      transport: [{ from: d === 1 ? 'Airport/Station' : DB.area1, to: d === 1 ? DB.hotel : DB.area2, mode: isIndia ? 'Taxi/Auto' : 'Cab/Metro', cost: Math.round(tr/days), duration: '20-40 mins', tips: DB.transportTip }],
+      estimatedCost: Math.round(hn + fd/days + ac/days + tr/days),
+      tips: DB.dayTips[d-1] || ['Start early to avoid crowds', 'Carry water and sunscreen'],
+    });
+  }
+  return {
+    destination: dest, sourceCity: from, duration: days, totalBudget: budget, currency: 'INR',
+    summary, _source: 'webcrawl',
+    breakdown: { flights: flB, hotels: hT, food: fd, activities: ac, transport: tr, shopping: sh, visa: vi, insurance: ins, emergency: em, total },
+    days: dayPlans,
+    flights: [
+      { id:'FL001', airline: isIndia?'IndiGo':'Air India', flightNumber: isIndia?'6E-742':'AI-120', from, to: dest, departure:'06:00', arrival: isIndia?'08:30':'12:00', duration: isIndia?'2h 30m':'6h', stops:0, price: flB, class:'Economy', bookingUrl:'https://www.goindigo.in' },
+      { id:'FL002', airline: isIndia?'SpiceJet':'IndiGo', flightNumber: isIndia?'SG-455':'6E-82', from, to: dest, departure:'10:00', arrival: isIndia?'12:30':'16:00', duration: isIndia?'2h 30m':'6h 30m', stops: isIndia?0:1, price: Math.round(flB*1.12), class:'Economy', bookingUrl:'https://www.booking.com/flights' },
+    ],
+    hotels: [
+      { id:'H001', name: DB.hotel, type: p.hotelType||'mid_range', rating:4.2, stars:4, pricePerNight: hn, totalPrice: hT, location: DB.area1, amenities:['WiFi','AC','Breakfast','Pool'], bookingUrl:'https://www.booking.com', distance:'1-2 km', reviews:1150 },
+      { id:'H002', name: DB.budgetHotel, type:'budget', rating:3.7, stars:3, pricePerNight: Math.round(hn*.55), totalPrice: Math.round(hn*.55*days), location: DB.area2, amenities:['WiFi','AC','Hot Water'], bookingUrl:'https://www.hostelworld.com', distance:'2-3 km', reviews:620 },
+    ],
+    tips: DB.tips, weather: DB.weather,
+    visa: isIndia ? { required:false, type:'No visa — domestic', cost:0, processingTime:'Instant', validity:'N/A', requirements:['Valid Indian ID'], applicationUrl:'', notes:'Domestic travel — any Indian photo ID valid.' } : DB.visa,
+    packingList: DB.packingList, emergencyContacts: DB.emergencyContacts,
+    hiddenGems: DB.hiddenGems, localFood: DB.localFood,
+    id: 'wc_'+Date.now(), shareToken: Math.random().toString(36).slice(2,16), createdAt: new Date().toISOString(),
+  };
+}
+
+function getDB(dest) {
+  const d = dest.toLowerCase();
+  if (d.includes('goa')) return { vibe:'beaches, nightlife and Portuguese heritage', area1:'Calangute/Baga', area2:'Anjuna/Vagator', cuisine:'Goan/Seafood', hotel:'Lemon Tree Hotel Goa', budgetHotel:'Zostel Goa', restaurants:['Brittos Beach Shack','Vinayak Family Restaurant','Thalassa Greek'], mustEat:['Fish Curry Rice','Prawn Balchão','Bebinca'], transportTip:'Rent scooter ₹300-400/day',
+    activities:[{name:'Baga Beach',type:'Beach',duration:'3 hours',rating:4.5,description:'Iconic North Goa beach with water sports and beach shacks.',location:{lat:15.5573,lng:73.7521,address:'Baga Beach, North Goa'},isHiddenGem:false,bestTime:'Evening'},{name:'Fort Aguada',type:'Historical',duration:'2 hours',rating:4.6,description:'16th-century Portuguese fort with panoramic sea views.',location:{lat:15.4924,lng:73.7706,address:'Sinquerim, North Goa'},isHiddenGem:false,bestTime:'Morning'},{name:'Dudhsagar Falls',type:'Nature',duration:'4 hours',rating:4.8,description:'Stunning 4-tiered waterfall. Book a jeep safari in advance.',location:{lat:15.3144,lng:74.3144,address:'Goa-Karnataka border'},isHiddenGem:false,bestTime:'Morning'},{name:'Butterfly Beach',type:'Hidden Gem',duration:'3 hours',rating:4.9,description:'Boat-access-only secluded beach. Crystal water, zero tourists.',location:{lat:15.0098,lng:73.9421,address:'Near Palolem, South Goa'},isHiddenGem:true,bestTime:'Early morning'}],
+    dayTitles:['Arrival & North Goa Beaches','History & Old Goa','South Goa & Waterfalls','Adventure & Nightlife','Hidden Gems & Departure'],
+    dayDescs:['Check in and hit iconic Baga beach before sunset cocktails.','Fort Aguada, Basilica of Bom Jesus and Panaji streets.','Pristine Palolem beach and mighty Dudhsagar Falls.','Water sports, beach shack-hopping and live music.','Fontainhas Latin Quarter and butterfly beach before departure.'],
+    dayTips:[['Arrive after 4 PM to skip peak heat','Pre-book beach shack for sunset'],['Start by 8 AM before crowds','No shorts in Old Goa churches'],['Book Dudhsagar jeep tour in advance','Carry cash for South Goa'],['Book water sports at hotel desk','Avoid beach shacks post-midnight'],['Boat to Butterfly Beach ₹200-300/person','Try Goan sausage at Panaji market']],
+    tips:[{category:'safety',title:'Night beach safety',description:'Stick to lit popular beaches after dark. Travel in groups.',importance:'high'},{category:'money',title:'Carry cash',description:'Many beach shacks only accept cash.',importance:'medium'},{category:'culture',title:'Church dress code',description:'Cover shoulders and knees when visiting churches.',importance:'medium'},{category:'health',title:'Beach safety flags',description:'Red flag = dangerous — do not enter water.',importance:'critical'}],
+    weather:{destination:'Goa',month:'Winter',temperature:{min:20,max:32,unit:'°C'},humidity:'60%',rainfall:'Low',description:'Oct–Mar is peak season. Warm sunny days, cool evenings.',bestSeason:'October to March',packingAdvice:['Light cotton','Sunscreen SPF 50+','Beach sandals','Light jacket']},
+    visa:{required:false,type:'No visa',cost:0,processingTime:'N/A',validity:'N/A',requirements:['Valid Indian ID'],applicationUrl:'',notes:'Domestic.'},
+    hiddenGems:[{name:'Butterfly Beach',description:'Boat-access-only pristine beach. Almost no tourists.',location:'Near Palolem, South Goa',bestTime:'Early morning',cost:'₹200 boat',instagramScore:9.5},{name:'Fontainhas Latin Quarter',description:'Colourful Portuguese architecture and vintage bakeries.',location:'Panaji, Goa',bestTime:'Morning walk',cost:'Free',instagramScore:9.1}],
+    localFood:[{name:'Fish Curry Rice',description:'Soul food of Goa — spicy red curry with fresh local fish.',mustTry:true,vegetarian:false,price:'₹120-200',where:'Any local tasca'},{name:'Bebinca',description:'7-layer Goan dessert of coconut milk and eggs.',mustTry:true,vegetarian:true,price:'₹80-150',where:'Confeitaria 31, Panaji'},{name:'Solkadhi',description:'Pink digestive of kokum and coconut milk.',mustTry:true,vegetarian:true,price:'₹40-80',where:'Any Goan restaurant'}],
+    packingList:['Aadhar/PAN','Swimwear','Cotton clothes','Sunscreen SPF 50+','Beach sandals','Insect repellent','Power bank','Cash ₹5000','Basic medicines'],
+    emergencyContacts:[{name:'Police',number:'100',type:'police'},{name:'Ambulance',number:'108',type:'ambulance'},{name:'Tourist Helpline Goa',number:'1364',type:'tourist_helpline'}]};
+
+  if (d.includes('bali')) return { vibe:'temples, rice terraces and tropical beaches', area1:'Seminyak/Kuta', area2:'Ubud/Canggu', cuisine:'Balinese/Indonesian', hotel:'The Layar Villas Seminyak', budgetHotel:'Puri Garden Hotel Ubud', restaurants:['Locavore Ubud','Sarong Seminyak','Warung Ibu Oka'], mustEat:['Babi Guling','Nasi Campur','Bebek Betutu'], transportTip:'Hire private driver for day (₹2000-2500)',
+    activities:[{name:'Tanah Lot Temple',type:'Cultural',duration:'2 hours',rating:4.8,description:'Iconic sea temple perched on rock. Spectacular at sunset.',location:{lat:-8.6215,lng:115.0865,address:'Tabanan Regency, Bali'},isHiddenGem:false,bestTime:'Sunset'},{name:'Tegallalang Rice Terraces',type:'Nature',duration:'2.5 hours',rating:4.9,description:'UNESCO emerald rice terraces — quintessential Bali photo.',location:{lat:-8.4312,lng:115.2790,address:'Tegallalang, Ubud, Bali'},isHiddenGem:false,bestTime:'Morning'},{name:'Uluwatu Temple',type:'Cultural',duration:'2 hours',rating:4.7,description:'Clifftop temple with Kecak fire dance at sunset.',location:{lat:-8.8291,lng:115.0849,address:'Uluwatu, Bali'},isHiddenGem:false,bestTime:'Sunset'},{name:'Tibumana Waterfall',type:'Hidden Gem',duration:'3 hours',rating:4.8,description:'Less-visited twin waterfall through lush jungle.',location:{lat:-8.4522,lng:115.3097,address:'Bangli, Bali'},isHiddenGem:true,bestTime:'Morning'}],
+    dayTitles:['Arrival & Seminyak','Sacred Temples','Ubud Art & Nature','Adventure & Beaches','Hidden Gems & Departure'],
+    dayDescs:['Land, check in, sunset cocktails at Seminyak beach clubs.','Tanah Lot at sunset and Uluwatu Kecak fire dance.','Monkey Forest, rice terraces, art market and cooking class.','Nusa Dua beach, water sports, Jimbaran seafood dinner.','Morning wellness, secret waterfall before the flight home.'],
+    dayTips:[['Exchange currency at official booths','Avoid tap water'],['Wear sarong at temples (provided)','Book Kecak show early'],['Beware of monkeys — no dangling items','Rice terrace best before 9 AM'],['Wear reef-safe sunscreen','Jimbaran sunset is magical'],['Waterfall trek: wear good shoes','Final temple entry covers maintenance']],
+    tips:[{category:'money',title:'Currency exchange',description:'Official booths give 5-10% better rates than hotels.',importance:'high'},{category:'safety',title:'Secure belongings',description:'Bag snatching near tourist spots. Use hotel safe.',importance:'high'},{category:'culture',title:'Temple dress code',description:'Sarongs required at temples — usually provided free.',importance:'critical'},{category:'health',title:'Bali belly',description:'Drink only bottled water. Carry ORS sachets.',importance:'high'}],
+    weather:{destination:'Bali',month:'Apr–Oct',temperature:{min:24,max:33,unit:'°C'},humidity:'70%',rainfall:'Low in dry season',description:'Dry season Apr–Oct ideal. Wet season Nov–Mar has short heavy showers.',bestSeason:'April to October',packingAdvice:['Light clothes','Sarong','Reef-safe sunscreen','Comfortable walking shoes']},
+    visa:{required:true,type:'Visa on Arrival',cost:3000,processingTime:'Instant at airport',validity:'30 days',requirements:['Valid passport (6m)','Return ticket','Hotel proof','USD 35 cash'],applicationUrl:'https://evisa.imigrasi.go.id',notes:'Indians get VOA at Ngurah Rai Airport for USD 35 (≈₹2,900).'},
+    hiddenGems:[{name:'Tibumana Waterfall',description:'Twin cascades in jungle — far fewer visitors.',location:'Bangli, Bali',bestTime:'Early morning',cost:'₹250',instagramScore:9.3},{name:'Sidemen Valley',description:'Quiet lush paddy fields and traditional weaving.',location:'Karangasem, Bali',bestTime:'Morning',cost:'Free',instagramScore:8.9}],
+    localFood:[{name:'Babi Guling',description:'Balinese suckling pig — crispy skin, aromatic spices.',mustTry:true,vegetarian:false,price:'₹300-500',where:'Ibu Oka Warung, Ubud'},{name:'Nasi Campur',description:'Mixed rice plate with various Balinese sides.',mustTry:true,vegetarian:false,price:'₹150-250',where:'Any local warung'}],
+    packingList:['Passport (6m+ validity)','USD 35-40 cash for VOA','Sarong','Reef-safe sunscreen','Insect repellent','Light cotton','Sandals','ORS sachets','Power bank','Universal adapter'],
+    emergencyContacts:[{name:'Police',number:'110',type:'police'},{name:'Ambulance',number:'118',type:'ambulance'},{name:'Indian Embassy Jakarta',number:'+62-21-5204150',type:'embassy'},{name:'Tourist Police Bali',number:'0361-224111',type:'tourist_helpline'}]};
+
+  // Generic fallback for any destination
+  return { vibe:'beautiful landscapes and rich culture', area1:'City Centre', area2:'Tourist Area', cuisine:'Local/International',
+    hotel:`${dest} Grand Hotel`, budgetHotel:`${dest} Budget Inn`,
+    restaurants:[`${dest} Kitchen`,'Local Café','Tourist Restaurant'],
+    mustEat:['Local specialty','Street food','Traditional dessert'], transportTip:'Use licensed taxis or ride apps',
+    activities:[
+      {name:`${dest} City Tour`,type:'Sightseeing',duration:'3 hours',rating:4.4,description:`Explore the highlights of ${dest} with a guided city walk.`,location:{lat:0,lng:0,address:`${dest} City Centre`},isHiddenGem:false,bestTime:'Morning'},
+      {name:`${dest} Local Market`,type:'Shopping',duration:'2 hours',rating:4.2,description:'Experience local culture and shop for souvenirs.',location:{lat:0,lng:0,address:`${dest} Market`},isHiddenGem:false,bestTime:'Evening'},
+      {name:`${dest} Viewpoint`,type:'Photography',duration:'1.5 hours',rating:4.7,description:'A stunning lesser-known viewpoint loved by locals.',location:{lat:0,lng:0,address:`${dest} Outskirts`},isHiddenGem:true,bestTime:'Sunset'},
+      {name:`${dest} Museum`,type:'Cultural',duration:'2 hours',rating:4.3,description:'Discover the rich history and culture of this destination.',location:{lat:0,lng:0,address:`${dest} Museum`},isHiddenGem:false,bestTime:'Morning'},
+    ],
+    dayTitles:['Arrival & Orientation','Cultural Exploration','Nature & Adventure','Local Experiences','Leisure & Departure'],
+    dayDescs:Array(5).fill(`Explore ${dest} at a comfortable pace.`),
+    dayTips:Array(5).fill(['Start early to beat crowds','Carry cash and water']),
+    tips:[{category:'safety',title:'Stay aware',description:'Keep valuables secure and use trusted transport.',importance:'high'},{category:'money',title:'Local currency',description:'Exchange at authorised counters for best rates.',importance:'medium'},{category:'health',title:'Food and water',description:'Drink bottled water. Eat at busy restaurants.',importance:'high'}],
+    weather:{destination:dest,month:'Varies',temperature:{min:18,max:30,unit:'°C'},humidity:'65%',rainfall:'Moderate',description:`Check the season before travelling to ${dest}.`,bestSeason:'October to March (generally)',packingAdvice:['Light cotton','Sunscreen','Comfortable shoes','Universal adapter']},
+    visa:{required:false,type:'Check for Indian passport',cost:0,processingTime:'3-5 days',validity:'30 days',requirements:['Valid passport','Return ticket','Hotel proof','Bank statement'],applicationUrl:'',notes:`Check official visa requirements for ${dest}.`},
+    hiddenGems:[{name:`Secret ${dest} Viewpoint`,description:'A lesser-known spot loved by locals for its views.',location:dest,bestTime:'Sunset',cost:'Free',instagramScore:8.5}],
+    localFood:[{name:'Local Specialty',description:`The most famous dish of ${dest}.`,mustTry:true,vegetarian:false,price:'₹200-400',where:'Local restaurant'}],
+    packingList:['Passport + copies','Travel insurance','Comfortable shoes','Sunscreen','Power bank','Universal adapter','Cash','Medicines'],
+    emergencyContacts:[{name:'Police',number:'100',type:'police'},{name:'Ambulance',number:'102',type:'ambulance'},{name:'Indian Embassy',number:'+91-11-2301-2113',type:'embassy'}]};
+}
+
+// ── 4. GENERATE TRIP ──────────────────────────────────
+let IT = null, dayIdx = 0;
+
+async function generateTrip() {
+  const from   = document.getElementById('f-from').value.trim();
+  const dest   = document.getElementById('f-dest').value.trim();
+  const budget = parseInt(document.getElementById('brng').value) || 50000;
+  const start  = document.getElementById('f-start').value;
+  const end    = document.getElementById('f-end').value;
+  const days   = Math.max(1, Math.ceil((new Date(end) - new Date(start)) / 86400000));
+  if (!dest) { toast('⚠️ Enter a destination', 'warn'); return; }
+
+  document.getElementById('lov').classList.add('on');
+  document.getElementById('lov-title').textContent = getKey() ? 'Gemini 2.5 Flash planning…' : 'Web Crawl Mode…';
+  document.getElementById('lov-sub').textContent   = getKey() ? 'Gemini 2.5 Flash is working' : 'Fetching live travel data';
+  fbUsed = false;
+
+  const prefs = {
+    budget, destination: dest, sourceCity: from, tripType,
+    travelers: { adults, children: kids, infants: 0 },
+    startDate: start, endDate: end, duration: days,
+    hotelType: hotelP, foodPreference: foodP, travelPace: paceP,
+    activityIntensity: actP, flightPreference: flightP, visaPreference: visaP,
+    interests: selInts,
+  };
+
+  try {
+    if (getKey()) {
+      const sys = `You are TravelBuddy AI. Return ONLY valid JSON. No markdown. No text outside JSON. Use realistic INR prices and real airline/hotel names.`;
+      const month = new Date(start).toLocaleString('default', { month: 'long' });
+      const raw = await callGemini(buildPrompt(prefs, days, month), sys);
+      IT = JSON.parse(xJ(raw));
+      IT._source = 'gemini';
+    } else throw new Error('NO_KEY');
+  } catch (e) {
+    if (e.message !== 'NO_KEY') console.warn('[Fallback triggered]', e.message);
+    IT = await webCrawl(prefs);
+  }
+
+  IT.id = 'trip_' + Date.now();
+  IT.shareToken = Math.random().toString(36).slice(2, 16);
+  IT.createdAt = new Date().toISOString();
+  IT.duration = IT.duration || days;
+
+  document.getElementById('lov').classList.remove('on');
+  renderResult();
+  toast(fbUsed ? '🕸️ Web crawl plan ready!' : '🎉 AI itinerary ready!');
+}
+
+function buildPrompt(p, days, month) {
+  return `Plan a complete ${days}-day trip. Return ONLY valid JSON — no text outside the JSON object.
+
+TRIP: ${p.sourceCity} → ${p.destination} | ${p.startDate}→${p.endDate} | ${days} days
+Budget: ₹${p.budget.toLocaleString('en-IN')} | ${p.travelers.adults} adults, ${p.travelers.children} children
+Hotel: ${p.hotelType} | Food: ${p.foodPreference} | Pace: ${p.travelPace} | Activity: ${p.activityIntensity}
+Interests: ${p.interests.join(',') || 'general'} | Visa pref: ${p.visaPreference}
+
+{"destination":"${p.destination}","sourceCity":"${p.sourceCity}","duration":${days},"totalBudget":${p.budget},"currency":"INR","summary":"2-sentence overview",
+"breakdown":{"flights":0,"hotels":0,"food":0,"activities":0,"transport":0,"shopping":0,"visa":0,"insurance":0,"emergency":0,"total":0},
+"days":[{"day":1,"date":"${p.startDate}","title":"Day title","description":"Day overview",
+"activities":[{"id":"a1","name":"Real place","type":"Sightseeing","duration":"2 hours","cost":500,"rating":4.5,"description":"What to expect","location":{"lat":0.0,"lng":0.0,"address":"Full address"},"isHiddenGem":false,"bestTime":"Morning"}],
+"meals":[{"type":"breakfast","restaurant":"Name","cuisine":"Local","cost":300,"recommendation":"Dish"},{"type":"lunch","restaurant":"Name","cuisine":"Indian","cost":500,"recommendation":"Dish"},{"type":"dinner","restaurant":"Name","cuisine":"Seafood","cost":800,"recommendation":"Dish"}],
+"transport":[{"from":"Airport","to":"Hotel","mode":"Taxi","cost":400,"duration":"30 mins","tips":"Use Ola"}],
+"estimatedCost":3500,"tips":["Tip 1","Tip 2"]}],
+"flights":[{"id":"FL001","airline":"IndiGo","flightNumber":"6E-123","from":"${p.sourceCity}","to":"${p.destination}","departure":"06:00","arrival":"08:30","duration":"2h 30m","stops":0,"price":4500,"class":"Economy","bookingUrl":"https://www.goindigo.in"},{"id":"FL002","airline":"Air India","flightNumber":"AI-456","from":"${p.sourceCity}","to":"${p.destination}","departure":"10:00","arrival":"12:45","duration":"2h 45m","stops":0,"price":5200,"class":"Economy","bookingUrl":"https://www.airindia.in"}],
+"hotels":[{"id":"H001","name":"Hotel","type":"${p.hotelType}","rating":4.2,"stars":4,"pricePerNight":2500,"totalPrice":${days*2500},"location":"Central","amenities":["WiFi","AC","Breakfast"],"bookingUrl":"https://www.booking.com","distance":"1.5 km","reviews":1200},{"id":"H002","name":"Budget Hotel","type":"budget","rating":3.8,"stars":3,"pricePerNight":1200,"totalPrice":${days*1200},"location":"Tourist area","amenities":["WiFi","AC"],"bookingUrl":"https://www.makemytrip.com","distance":"2 km","reviews":650}],
+"tips":[{"category":"safety","title":"Safety tip","description":"Specific advice","importance":"high"},{"category":"money","title":"Money","description":"Advice","importance":"medium"},{"category":"health","title":"Health","description":"Advice","importance":"high"}],
+"weather":{"destination":"${p.destination}","month":"${month}","temperature":{"min":22,"max":32,"unit":"°C"},"humidity":"65%","rainfall":"Low","description":"Weather overview","bestSeason":"Oct–Mar","packingAdvice":["Light cotton","Sunscreen"]},
+"visa":{"required":false,"type":"No visa","cost":0,"processingTime":"Instant","validity":"N/A","requirements":["Valid Indian ID"],"applicationUrl":"","notes":"Note for Indians"},
+"packingList":["Passport","Sunscreen","Shoes","Power bank","Cash","Medicines"],
+"emergencyContacts":[{"name":"Police","number":"100","type":"police"},{"name":"Ambulance","number":"102","type":"ambulance"}],
+"hiddenGems":[{"name":"Hidden spot","description":"Why special","location":"Where","bestTime":"When","cost":"Free","instagramScore":9.0}],
+"localFood":[{"name":"Local dish","description":"What it is","mustTry":true,"vegetarian":false,"price":"₹200-400","where":"Best place"}]}`;
+}
+
+// ── 5. PDF EXPORT ─────────────────────────────────────
+async function downloadPDF() {
+  if (!IT) { toast('⚠️ No itinerary to export', 'warn'); return; }
+  const btn = document.getElementById('pdf-btn');
+  btn.textContent = '⏳ Generating PDF…';
+  btn.disabled = true;
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, ml = 15, mr = 195, lh = 7;
+    let y = 20;
+
+    const addLine = (txt, size = 11, bold = false, color = [30,30,30]) => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.setFontSize(size);
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setTextColor(...color);
+      doc.text(txt, ml, y);
+      y += lh;
+    };
+
+    const addWrapped = (txt, size = 10, maxW = 170) => {
+      doc.setFontSize(size);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      const lines = doc.splitTextToSize(String(txt || ''), maxW);
+      lines.forEach(line => {
+        if (y > 275) { doc.addPage(); y = 20; }
+        doc.text(line, ml, y);
+        y += 6;
+      });
+    };
+
+    const addSection = (title) => {
+      y += 4;
+      if (y > 265) { doc.addPage(); y = 20; }
+      doc.setFillColor(249, 115, 22);
+      doc.rect(ml, y - 5, mr - ml, 8, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(title, ml + 3, y);
+      y += 8;
+    };
+
+    const addHR = () => {
+      doc.setDrawColor(220, 220, 220);
+      doc.line(ml, y, mr, y);
+      y += 4;
+    };
+
+    // ── COVER ──
+    doc.setFillColor(10, 15, 30);
+    doc.rect(0, 0, W, 80, 'F');
+    doc.setFillColor(249, 115, 22);
+    doc.rect(0, 78, W, 3, 'F');
+
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22);
+    doc.text('TravelBuddy AI', W/2, 28, { align: 'center' });
+
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`${IT.sourceCity} → ${IT.destination}`, W/2, 42, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor(200, 200, 200);
+    doc.text(`${IT.duration} days  •  Budget: ₹${(IT.totalBudget||0).toLocaleString('en-IN')}`, W/2, 52, { align: 'center' });
+    doc.text(`Generated: ${new Date(IT.createdAt||Date.now()).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}`, W/2, 60, { align: 'center' });
+
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text('Built by Raman Jha  •  travelbuddy.ai', W/2, 73, { align: 'center' });
+
+    y = 95;
+
+    // ── SUMMARY ──
+    if (IT.summary) {
+      addLine('Trip Overview', 13, true, [30, 30, 30]);
+      addWrapped(IT.summary);
+      y += 3;
+    }
+
+    // ── BUDGET BREAKDOWN ──
+    addSection('💰 Budget Breakdown');
+    const b = IT.breakdown || {};
+    Object.entries(b).filter(([k]) => k !== 'total').forEach(([k, v]) => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 50, 50);
+      const label = k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ');
+      doc.text(label, ml, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(249, 115, 22);
+      doc.text(`₹${Number(v).toLocaleString('en-IN')}`, mr, y, { align: 'right' });
+      y += 6;
+    });
+    addHR();
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(249, 115, 22);
+    doc.text('TOTAL', ml, y);
+    doc.text(`₹${(b.total||IT.totalBudget||0).toLocaleString('en-IN')}`, mr, y, { align: 'right' });
+    y += 10;
+
+    // ── DAY BY DAY ──
+    addSection('📅 Day-by-Day Itinerary');
+    (IT.days || []).forEach(d => {
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFillColor(245, 247, 250);
+      doc.rect(ml, y - 5, mr - ml, 9, 'F');
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(10, 15, 30);
+      doc.text(`Day ${d.day}: ${d.title}`, ml + 3, y);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text(d.date || '', mr, y, { align: 'right' });
+      y += 9;
+
+      if (d.description) addWrapped(d.description, 10);
+
+      if (d.activities?.length) {
+        addLine('Activities:', 10, true, [80, 80, 80]);
+        d.activities.forEach(a => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          doc.text(`  • ${a.name} (${a.type}) — ${a.duration}`, ml, y);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(249, 115, 22);
+          doc.text(`₹${(a.cost||0).toLocaleString('en-IN')}`, mr, y, { align: 'right' });
+          y += 6;
+          if (a.description) {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(100, 100, 100);
+            const lines = doc.splitTextToSize(`    ${a.description}`, 165);
+            lines.slice(0, 2).forEach(l => { if (y < 275) { doc.text(l, ml, y); y += 5; } });
+          }
+        });
+      }
+
+      if (d.meals?.length) {
+        addLine('Meals:', 10, true, [80, 80, 80]);
+        d.meals.forEach(m => {
+          if (y > 275) { doc.addPage(); y = 20; }
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(60, 60, 60);
+          const cap = m.type.charAt(0).toUpperCase() + m.type.slice(1);
+          doc.text(`  ${cap}: ${m.restaurant} (${m.cuisine}) — ${m.recommendation}  •  ₹${m.cost||0}`, ml, y);
+          y += 5.5;
+        });
+      }
+
+      if (d.tips?.length) {
+        addLine('Tips:', 9, true, [100, 100, 100]);
+        d.tips.slice(0, 2).forEach(tip => { if (y < 275) { doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80); doc.text(`  ✓ ${tip}`, ml, y); y += 5; } });
+      }
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(249, 115, 22);
+      doc.text(`Estimated Day Cost: ₹${(d.estimatedCost||0).toLocaleString('en-IN')}`, mr, y, { align: 'right' });
+      y += 8;
+      addHR();
+    });
+
+    // ── FLIGHTS ──
+    addSection('✈️ Recommended Flights');
+    (IT.flights || []).forEach(f => {
+      if (y > 265) { doc.addPage(); y = 20; }
+      addLine(`${f.airline} ${f.flightNumber||''} — ${f.from} → ${f.to}`, 11, true, [30,30,30]);
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      doc.text(`Dep: ${f.departure}  Arr: ${f.arrival}  Duration: ${f.duration}  ${f.stops===0?'Non-stop':f.stops+' stop'}  ${f.class}`, ml, y);
+      doc.setFont('helvetica','bold'); doc.setTextColor(249,115,22);
+      doc.text(`₹${(f.price||0).toLocaleString('en-IN')}`, mr, y, { align:'right' });
+      y += 5; doc.setFont('helvetica','normal'); doc.setTextColor(14,165,233);
+      doc.text(f.bookingUrl||'', ml, y); y += 8;
+    });
+
+    // ── HOTELS ──
+    addSection('🏨 Recommended Hotels');
+    (IT.hotels || []).forEach(h => {
+      if (y > 265) { doc.addPage(); y = 20; }
+      addLine(`${h.name} (${h.type}) — ${'★'.repeat(h.stars||3)}`, 11, true, [30,30,30]);
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      doc.text(`${h.location}  •  ${h.distance}  •  Rating: ${h.rating}  •  ${(h.reviews||0).toLocaleString()} reviews`, ml, y); y += 5;
+      doc.text(`Amenities: ${(h.amenities||[]).join(', ')}`, ml, y);
+      doc.setFont('helvetica','bold'); doc.setTextColor(249,115,22);
+      doc.text(`₹${(h.pricePerNight||0).toLocaleString('en-IN')}/night  •  ₹${(h.totalPrice||0).toLocaleString('en-IN')} total`, mr, y, { align:'right' });
+      y += 5; doc.setFont('helvetica','normal'); doc.setTextColor(14,165,233);
+      doc.text(h.bookingUrl||'', ml, y); y += 8;
+    });
+
+    // ── VISA ──
+    addSection('🛂 Visa & Weather');
+    const v = IT.visa || {};
+    addLine(`Visa: ${v.required ? 'Required' : 'Not Required'} — ${v.type||''}`, 11, true, [30,30,30]);
+    if (v.cost !== undefined) { doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80); doc.text(`Cost: ${v.cost===0?'Free':'₹'+v.cost}  •  Processing: ${v.processingTime||''}  •  Validity: ${v.validity||''}`, ml, y); y += 5; }
+    if (v.notes) addWrapped(v.notes, 9);
+    y += 3;
+    const w = IT.weather || {};
+    if (w.destination) {
+      addLine(`Weather: ${w.temperature?.min}°–${w.temperature?.max}°C  |  ${w.humidity} humidity  |  Best season: ${w.bestSeason}`, 10, false, [60,60,60]);
+      addWrapped(w.description || '', 9);
+    }
+
+    // ── SAFETY TIPS ──
+    addSection('💡 Travel Tips & Safety');
+    (IT.tips || []).forEach(t => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+      doc.text(`• ${t.title}`, ml, y); y += 5;
+      addWrapped(t.description, 9); y += 1;
+    });
+
+    // ── HIDDEN GEMS ──
+    if (IT.hiddenGems?.length) {
+      addSection('💎 Hidden Gems');
+      IT.hiddenGems.forEach(g => {
+        if (y > 265) { doc.addPage(); y = 20; }
+        addLine(g.name, 11, true, [245,158,11]);
+        addWrapped(g.description, 9);
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+        doc.text(`📍 ${g.location}  •  🕐 ${g.bestTime}  •  💰 ${g.cost}  •  📸 ${g.instagramScore}/10`, ml, y); y += 8;
+      });
+    }
+
+    // ── EMERGENCY CONTACTS ──
+    if (IT.emergencyContacts?.length) {
+      addSection('🆘 Emergency Contacts');
+      IT.emergencyContacts.forEach(c => {
+        if (y > 275) { doc.addPage(); y = 20; }
+        doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30);
+        doc.text(`${c.name}:`, ml, y);
+        doc.setFont('helvetica','normal'); doc.setTextColor(220,50,50);
+        doc.text(c.number, ml+45, y); y += 6;
+      });
+    }
+
+    // ── PACKING LIST ──
+    if (IT.packingList?.length) {
+      addSection('🎒 Packing Checklist');
+      const cols = 3;
+      const colW = (mr - ml) / cols;
+      IT.packingList.forEach((item, i) => {
+        if (y > 272) { doc.addPage(); y = 20; }
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        if (col === 0 && i > 0 && row > 0) {}
+        const xPos = ml + col * colW;
+        if (col === 0) { if (i > 0) y += 0; }
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
+        doc.text(`☐ ${item}`, xPos, y + (row % 1 === 0 && col === 0 ? 0 : 0));
+        if (col === cols - 1 || i === IT.packingList.length - 1) y += 6;
+      });
+    }
+
+    // ── LOCAL FOOD ──
+    if (IT.localFood?.length) {
+      addSection('🍜 Must-Try Local Food');
+      IT.localFood.forEach(f => {
+        if (y > 265) { doc.addPage(); y = 20; }
+        addLine(`${f.name} ${f.mustTry?'★ Must Try':''} ${f.vegetarian?'(Veg)':''}`, 10, true, [30,30,30]);
+        addWrapped(f.description, 9);
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+        doc.text(`💰 ${f.price}  •  📍 ${f.where}`, ml, y); y += 7;
+      });
+    }
+
+    // ── FOOTER on last page ──
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(150,150,150);
+      doc.text(`TravelBuddy AI  •  Built by Raman Jha  •  Page ${i} of ${totalPages}`, W/2, 290, { align:'center' });
+    }
+
+    const fileName = `TravelBuddy_${IT.destination.replace(/\s+/g,'-')}_${IT.duration}days.pdf`;
+    doc.save(fileName);
+    toast(`✅ PDF downloaded: ${fileName}`);
+  } catch (err) {
+    console.error('PDF error:', err);
+    toast('❌ PDF failed: ' + err.message, 'error');
+  }
+
+  btn.textContent = '⬇️ Download PDF';
+  btn.disabled = false;
+}
+
+// ── 6. RENDER RESULT ──────────────────────────────────
+function renderResult() {
+  document.getElementById('form-view').style.display = 'none';
+  document.getElementById('result-view').style.display = 'block';
+  const it = IT;
+
+  const fn = document.getElementById('fb-notice');
+  if (it._source === 'webcrawl') {
+    fn.innerHTML = `<div class="fb-banner"><span style="font-size:1.2rem;flex-shrink:0">🕸️</span><div><strong style="color:#c084fc">Web Crawl Mode</strong> — No Gemini key detected. Built from Wikipedia &amp; travel data. <span style="color:var(--or);cursor:pointer;text-decoration:underline" onclick="document.getElementById('key-inp').focus();window.scrollTo({top:0,behavior:'smooth'})">Add API key in top bar ↑</span> for fully personalised AI plans.</div></div>`;
+    document.getElementById('r-credit').textContent = 'Web Crawl Fallback • Live data';
+    document.getElementById('r-credit').style.color = '#c084fc';
+    document.getElementById('r-dot').textContent = '🕸️';
+  } else {
+    fn.innerHTML = '';
+    document.getElementById('r-credit').textContent = 'Gemini 2.5 Flash • AI-generated';
+    document.getElementById('r-credit').style.color = '#4ade80';
+    document.getElementById('r-dot').textContent = '✅';
+  }
+
+  document.getElementById('r-title').innerHTML = `${it.sourceCity} → <span class="grad">${it.destination}</span>`;
+  document.getElementById('r-meta').textContent = `${it.duration} days • ₹${(it.totalBudget||0).toLocaleString('en-IN')} budget`;
+  document.getElementById('r-sum').textContent = it.summary || '';
+
+  buildItin(); buildBudget(); buildFlights(); buildHotels(); buildTips(); buildVisa(); buildPacking();
+  rTab('itinerary');
+}
+
+function rTab(n) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.toggle('on', t.getAttribute('onclick') === `rTab('${n}')`));
+  document.querySelectorAll('.rpanel').forEach(p => p.classList.remove('on'));
+  document.getElementById('tp-' + n).classList.add('on');
+}
+
+function buildItin() {
+  const sb = (IT.days||[]).map((d,i) => `<button class="dbn${i===0?' on':''}" id="db${i}" onclick="selDay(${i})"><span class="dn">Day ${d.day}</span><span class="dt">${d.title}</span></button>`).join('');
+  document.getElementById('tp-itinerary').innerHTML = `<div class="day-grid"><div class="day-sb"><p style="font-size:.68rem;color:var(--mu2);font-weight:600;text-transform:uppercase;margin-bottom:.65rem;padding:0 .4rem">Days</p>${sb}</div><div id="day-detail"></div></div>`;
+  renderDay(0);
+}
+
+function selDay(i) { dayIdx = i; document.querySelectorAll('.dbn').forEach((b,j) => b.classList.toggle('on',j===i)); renderDay(i); }
+
+function renderDay(i) {
+  const d = IT.days?.[i]; if (!d) return;
+  const acts = (d.activities||[]).map(a => `<div class="act-card"><div style="display:flex;align-items:flex-start;gap:.8rem"><span style="font-size:1.4rem;margin-top:.1rem">${a.isHiddenGem?'💎':'📍'}</span><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.3rem"><span style="font-weight:600">${a.name}</span>${a.isHiddenGem?'<span class="tag tag-am" style="font-size:.65rem">Hidden Gem</span>':''}<span class="tag tag-wh" style="font-size:.65rem">${a.type}</span></div><p style="color:var(--mu);font-size:.8rem;margin-bottom:.5rem">${a.description}</p><div style="display:flex;flex-wrap:wrap;gap:.75rem;font-size:.73rem;color:var(--mu2)"><span>⏱ ${a.duration}</span><span>💰 ${a.cost>0?'₹'+a.cost.toLocaleString('en-IN'):'Free'}</span><span>⭐ ${a.rating}</span><span>🕐 ${a.bestTime}</span></div>${a.location?.address?`<p style="font-size:.7rem;color:var(--mu2);margin-top:.3rem">📍 ${a.location.address}</p>`:''}</div></div></div>`).join('');
+  const meals = (d.meals||[]).map(m => `<div class="meal-c"><div style="font-size:1.2rem;margin-bottom:.3rem">${m.type==='breakfast'?'☀️':m.type==='lunch'?'🌤️':m.type==='dinner'?'🌙':'☕'}</div><div style="font-size:.68rem;color:var(--mu2);text-transform:uppercase;margin-bottom:.2rem">${m.type}</div><div style="font-weight:600;font-size:.84rem;margin-bottom:.15rem">${m.restaurant}</div><div style="font-size:.73rem;color:var(--mu)">${m.cuisine} · ₹${(m.cost||0).toLocaleString('en-IN')}</div><div style="font-size:.7rem;color:var(--mu2);margin-top:.3rem">${m.recommendation}</div></div>`).join('');
+  const tr = (d.transport||[]).map(t => `<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:.8rem;padding:.8rem 1rem;display:flex;align-items:center;gap:.875rem;margin-bottom:.5rem"><span style="font-size:1.2rem">🚗</span><div style="flex:1;font-size:.82rem"><span style="font-weight:500">${t.from} → ${t.to}</span><span style="color:var(--mu);margin-left:.45rem">via ${t.mode}</span></div><div style="text-align:right"><div style="color:var(--or);font-size:.84rem;font-weight:600">₹${(t.cost||0).toLocaleString('en-IN')}</div><div style="font-size:.68rem;color:var(--mu2)">${t.duration}</div></div></div>`).join('');
+  document.getElementById('day-detail').innerHTML = `<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:1.35rem;margin-bottom:1rem"><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem"><div style="width:38px;height:38px;border-radius:.7rem;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--or)">${d.day}</div><div><h2 style="font-weight:700;font-size:1.1rem">${d.title}</h2><p style="color:var(--mu);font-size:.75rem">${d.date} · Est. ₹${(d.estimatedCost||0).toLocaleString('en-IN')}</p></div></div><p style="color:var(--mu);font-size:.84rem;line-height:1.65">${d.description}</p></div>${acts?`<h3 style="font-weight:600;color:var(--or);margin-bottom:.75rem;font-size:.95rem">🎯 Activities</h3>${acts}`:''}${meals?`<h3 style="font-weight:600;color:var(--or);margin:.875rem 0 .75rem;font-size:.95rem">🍽️ Food Plan</h3><div class="meal-g">${meals}</div>`:''}${tr?`<h3 style="font-weight:600;color:var(--or);margin:.5rem 0 .65rem;font-size:.95rem">🚌 Transport</h3>${tr}`:''}${d.tips?.length?`<div style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:.8rem;padding:1.1rem;margin-top:.875rem"><h4 style="color:#fbbf24;font-weight:600;margin-bottom:.5rem;font-size:.88rem">💡 Day Tips</h4>${d.tips.map(t=>`<div style="display:flex;gap:.5rem;font-size:.8rem;color:var(--mu);margin-bottom:.35rem"><span style="color:#fbbf24">•</span>${t}</div>`).join('')}</div>`:''}`;
+}
+
+function buildBudget() {
+  const b = IT.breakdown||{}, total = b.total||IT.totalBudget||1;
+  const rows = Object.entries(b).filter(([k])=>k!=='total').map(([k,v])=>`<div class="bbar-row"><div class="bbl">${k.replace(/_/g,' ')}</div><div class="bbt"><div class="bbf" style="width:${Math.min(100,Math.round(Number(v)/total*100))}%"></div></div><div class="bbv">₹${Number(v).toLocaleString('en-IN')}</div></div>`).join('');
+  document.getElementById('tp-budget').innerHTML = `<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);padding:1.75rem"><h2 style="font-weight:700;font-size:1.4rem;margin-bottom:1.5rem">💰 Budget Breakdown</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:1.75rem;align-items:start"><div>${rows}<div style="border-top:1px solid var(--gbr);padding-top:.875rem;display:flex;justify-content:space-between;align-items:center;margin-top:.4rem"><span style="font-weight:700">Total</span><span style="font-size:1.65rem;font-weight:800" class="grad">₹${total.toLocaleString('en-IN')}</span></div></div><div style="text-align:center;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:var(--rl);padding:1.75rem"><div style="font-size:2.2rem;font-weight:800;margin-bottom:.4rem" class="grad">₹${total.toLocaleString('en-IN')}</div><div style="color:var(--mu);font-size:.82rem">Total Trip Cost</div><div style="margin-top:.875rem;font-weight:600">≈ ₹${Math.round(total/Math.max(1,IT.duration)).toLocaleString('en-IN')}/day</div></div></div></div>`;
+}
+
+function buildFlights() {
+  document.getElementById('tp-flights').innerHTML = `<h2 style="font-weight:700;font-size:1.4rem;margin-bottom:1.1rem">✈️ Recommended Flights</h2>${(IT.flights||[]).map(f=>`<div class="fl-card"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:1.1rem"><span style="font-size:2.2rem">✈️</span><div style="flex:1;min-width:180px"><div style="font-weight:700;font-size:1rem">${f.airline} <span style="color:var(--mu);font-weight:400;font-size:.82rem">${f.flightNumber||''}</span></div><div style="color:var(--mu);font-size:.8rem;margin:.25rem 0">${f.from} → ${f.to}</div><div style="display:flex;flex-wrap:wrap;gap:.75rem;font-size:.75rem;color:var(--mu2)"><span>🕐 ${f.departure}–${f.arrival}</span><span>⏱ ${f.duration}</span><span>${f.stops===0?'✅ Non-stop':f.stops+' stop'}</span><span>${f.class}</span></div></div><div style="text-align:right"><div style="font-size:1.5rem;font-weight:800" class="grad">₹${(f.price||0).toLocaleString('en-IN')}</div><a href="${f.bookingUrl||'https://www.skyscanner.co.in'}" target="_blank" class="btn btn-or btn-xs" style="margin-top:.45rem;display:inline-flex">Book ↗</a></div></div></div>`).join('')}<div style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.18);border-radius:.8rem;padding:.875rem;font-size:.78rem;color:var(--mu);margin-top:.5rem">ℹ️ Prices are estimates. Verify current fares before booking.</div>`;
+}
+
+function buildHotels() {
+  document.getElementById('tp-hotels').innerHTML = `<h2 style="font-weight:700;font-size:1.4rem;margin-bottom:1.1rem">🏨 Recommended Hotels</h2>${(IT.hotels||[]).map(h=>`<div class="ht-card"><div class="ht-img">🏨</div><div style="flex:1;min-width:0"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:.65rem;margin-bottom:.4rem"><div><h3 style="font-weight:700;font-size:1rem;margin-bottom:.15rem">${h.name}</h3><div style="font-size:.82rem;color:#fbbf24">${'⭐'.repeat(Math.min(5,h.stars||3))} <span style="color:var(--mu);font-weight:400">(${(h.reviews||0).toLocaleString()})</span></div></div><div style="text-align:right"><div style="font-size:1.2rem;font-weight:700" class="grad">₹${(h.pricePerNight||0).toLocaleString('en-IN')}/night</div><div style="font-size:.73rem;color:var(--mu)">₹${(h.totalPrice||0).toLocaleString('en-IN')} total</div></div></div><p style="color:var(--mu);font-size:.78rem;margin-bottom:.55rem">📍 ${h.location} · ${h.distance}</p><div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.65rem">${(h.amenities||[]).map(a=>`<span class="tag tag-wh" style="font-size:.65rem">${a}</span>`).join('')}</div><a href="${h.bookingUrl||'https://www.booking.com'}" target="_blank" class="btn btn-or btn-xs">Book ↗</a></div></div>`).join('')}`;
+}
+
+function buildTips() {
+  const gems = IT.hiddenGems||[], ec = IT.emergencyContacts||[];
+  document.getElementById('tp-tips').innerHTML = `<h2 style="font-weight:700;font-size:1.4rem;margin-bottom:1.1rem">💡 Travel Tips & Safety</h2>${(IT.tips||[]).map(t=>`<div class="tp-item ${t.importance==='critical'?'cr':t.importance==='high'?'hi':''}"><div style="display:flex;align-items:flex-start;gap:.8rem"><span style="font-size:1.2rem">${t.category==='safety'?'🛡️':t.category==='money'?'💰':t.category==='food'?'🍽️':t.category==='health'?'🏥':t.category==='culture'?'🎎':'🚌'}</span><div><div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem"><h4 style="font-weight:600;font-size:.9rem">${t.title}</h4>${t.importance==='critical'?'<span class="tag tag-rd" style="font-size:.63rem">Critical</span>':t.importance==='high'?'<span class="tag tag-am" style="font-size:.63rem">Important</span>':''}</div><p style="color:var(--mu);font-size:.8rem;line-height:1.6">${t.description}</p></div></div></div>`).join('')}${gems.length?`<h2 style="font-weight:700;font-size:1.3rem;margin:1.5rem 0 .875rem">💎 Hidden Gems</h2>${gems.map(g=>`<div class="gem-c"><h4 style="font-weight:600;color:#fbbf24;margin-bottom:.3rem">💎 ${g.name}</h4><p style="color:var(--mu);font-size:.8rem;margin-bottom:.5rem">${g.description}</p><div style="display:flex;flex-wrap:wrap;gap:.75rem;font-size:.72rem;color:var(--mu2)"><span>📍 ${g.location}</span><span>🕐 ${g.bestTime}</span><span>💰 ${g.cost}</span><span>📸 ${g.instagramScore}/10</span></div></div>`).join('')}`:''}${ec.length?`<h2 style="font-weight:700;font-size:1.3rem;margin:1.5rem 0 .875rem">🆘 Emergency Contacts</h2><div class="ec-g">${ec.map(c=>`<div class="ec-c"><span style="font-size:1.4rem">${c.type==='police'?'👮':c.type==='ambulance'?'🚑':c.type==='embassy'?'🏛️':'📞'}</span><div><div style="font-weight:600;font-size:.84rem">${c.name}</div><div style="color:var(--or);font-weight:700">${c.number}</div></div></div>`).join('')}</div>`:''}`;
+}
+
+function buildVisa() {
+  const v=IT.visa||{}, w=IT.weather||{};
+  document.getElementById('tp-visa').innerHTML = `<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);padding:1.75rem;margin-bottom:1.1rem"><h2 style="font-weight:700;font-size:1.3rem;margin-bottom:1.1rem">🛂 Visa Info (Indian Passport)</h2><div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.1rem"><div style="width:44px;height:44px;border-radius:.8rem;background:${v.required?'rgba(245,158,11,.15)':'rgba(34,197,94,.15)'};display:flex;align-items:center;justify-content:center;font-size:1.3rem">${v.required?'⚠️':'✅'}</div><div><h3 style="font-weight:700;font-size:1rem">${v.required?'Visa Required':'No Visa Required'}</h3><p style="color:var(--mu);font-size:.78rem">Type: ${v.type||'N/A'}</p></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1rem">${[['Cost',v.cost===0?'Free':'₹'+v.cost],['Processing',v.processingTime||'N/A'],['Validity',v.validity||'N/A']].map(([l,val])=>`<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:.75rem;padding:.75rem;text-align:center"><div style="font-size:.68rem;color:var(--mu2)">${l}</div><div style="font-weight:600;font-size:.84rem;margin-top:.2rem">${val}</div></div>`).join('')}</div>${(v.requirements||[]).length?`<h4 style="font-weight:600;margin-bottom:.6rem;font-size:.875rem">📋 Requirements</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.875rem">${v.requirements.map(r=>`<div style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--mu)"><span style="color:#4ade80">✓</span>${r}</div>`).join('')}</div>`:''} ${v.notes?`<div style="background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.18);border-radius:.7rem;padding:.8rem;font-size:.78rem;color:var(--mu)">ℹ️ ${v.notes}</div>`:''}</div><div style="background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);padding:1.75rem"><h2 style="font-weight:700;font-size:1.3rem;margin-bottom:1.1rem">🌤️ Weather — ${w.destination||IT.destination}</h2><div class="wx-g"><div class="wx-b"><div style="font-size:1.2rem;margin-bottom:.3rem">🌡️</div><div style="font-size:.68rem;color:var(--mu2)">Temperature</div><div style="font-weight:600;font-size:.82rem;margin-top:.2rem">${w.temperature?.min}°–${w.temperature?.max}°C</div></div><div class="wx-b"><div style="font-size:1.2rem;margin-bottom:.3rem">💧</div><div style="font-size:.68rem;color:var(--mu2)">Humidity</div><div style="font-weight:600;font-size:.82rem;margin-top:.2rem">${w.humidity}</div></div><div class="wx-b"><div style="font-size:1.2rem;margin-bottom:.3rem">🌧️</div><div style="font-size:.68rem;color:var(--mu2)">Rainfall</div><div style="font-weight:600;font-size:.82rem;margin-top:.2rem">${w.rainfall}</div></div><div class="wx-b"><div style="font-size:1.2rem;margin-bottom:.3rem">⭐</div><div style="font-size:.68rem;color:var(--mu2)">Best Season</div><div style="font-weight:600;font-size:.72rem;margin-top:.2rem">${w.bestSeason}</div></div></div><p style="color:var(--mu);font-size:.82rem;margin-bottom:.875rem">${w.description}</p>${(w.packingAdvice||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:.4rem">${w.packingAdvice.map(p=>`<span class="tag tag-wh">${p}</span>`).join('')}</div>`:''}</div>`;
+}
+
+function buildPacking() {
+  const food = IT.localFood||[];
+  document.getElementById('tp-packing').innerHTML = `<div style="background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);padding:1.75rem;margin-bottom:1.25rem"><h2 style="font-weight:700;font-size:1.3rem;margin-bottom:1.1rem">🎒 Packing Checklist</h2><div class="pk-g">${(IT.packingList||[]).map((it,i)=>`<label class="pk-it"><input type="checkbox" id="pk${i}"/><span style="font-size:.82rem;color:var(--mu)">${it}</span></label>`).join('')}</div></div>${food.length?`<h2 style="font-weight:700;font-size:1.3rem;margin-bottom:1rem">🍜 Must-Try Local Food</h2><div class="fd-g">${food.map(f=>`<div class="fd-c${f.mustTry?' mt':''}"><div style="display:flex;justify-content:space-between;gap:.5rem;margin-bottom:.45rem"><h4 style="font-weight:600;font-size:.9rem">${f.name}</h4><div style="display:flex;gap:.3rem;flex-shrink:0">${f.mustTry?'<span class="tag tag-or" style="font-size:.62rem">Must Try</span>':''}${f.vegetarian?'<span class="tag tag-gn" style="font-size:.62rem">🌿 Veg</span>':''}</div></div><p style="color:var(--mu);font-size:.78rem;margin-bottom:.5rem;line-height:1.55">${f.description}</p><div style="display:flex;gap:.75rem;font-size:.72rem;color:var(--mu2)"><span>💰 ${f.price}</span><span>📍 ${f.where}</span></div></div>`).join('')}</div>`:''}`;
+}
+
+function resetPlan() { document.getElementById('form-view').style.display='block'; document.getElementById('result-view').style.display='none'; IT=null; goStep(1); window.scrollTo({top:0,behavior:'smooth'}); }
+function cpLink() { navigator.clipboard.writeText(window.location.href).then(()=>toast('🔗 Link copied!')).catch(()=>toast('Share: '+window.location.href)); }
+
+// ── 7. FORM STATE ─────────────────────────────────────
+let cs=1, tripType='india', adults=2, kids=0, selInts=[], hotelP='mid_range', foodP='any', paceP='moderate', actP='moderate', flightP='cheapest', visaP='any';
+const INTS=[{id:'beach',l:'Beach',i:'🏖️'},{id:'mountain',l:'Mountains',i:'🏔️'},{id:'adventure',l:'Adventure',i:'🧗'},{id:'culture',l:'Culture',i:'🏛️'},{id:'food',l:'Food',i:'🍜'},{id:'nightlife',l:'Nightlife',i:'🎉'},{id:'honeymoon',l:'Honeymoon',i:'💑'},{id:'family',l:'Family',i:'👨‍👩‍👧‍👦'},{id:'solo',l:'Solo',i:'🧳'},{id:'spiritual',l:'Spiritual',i:'🕌'},{id:'luxury',l:'Luxury',i:'💎'},{id:'photography',l:'Photography',i:'📸'},{id:'shopping',l:'Shopping',i:'🛍️'},{id:'wildlife',l:'Wildlife',i:'🦁'},{id:'trekking',l:'Trekking',i:'🥾'},{id:'party',l:'Party',i:'🎊'}];
+const PG={hotel:{pfx:'ht-',set:v=>hotelP=v},fd:{pfx:'fd-',set:v=>foodP=v},pc:{pfx:'pc-',set:v=>paceP=v},al:{pfx:'al-',set:v=>actP=v},fl:{pfx:'fl-',set:v=>flightP=v},vi:{pfx:'vi-',set:v=>visaP=v}};
+
+function initForm() {
+  const s=new Date();s.setDate(s.getDate()+30);const e=new Date(s);e.setDate(s.getDate()+7);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('f-start').value=fmt(s);document.getElementById('f-end').value=fmt(e);
+  document.getElementById('f-start').min=fmt(new Date());document.getElementById('f-end').min=fmt(s);
+  document.getElementById('f-start').addEventListener('change',updDur);
+  document.getElementById('f-end').addEventListener('change',updDur);
+  updDur();
+  document.getElementById('ig').innerHTML=INTS.map(i=>`<button class="ib" id="ib-${i.id}" onclick="togI('${i.id}')"><span class="ie">${i.i}</span><span class="il">${i.l}</span></button>`).join('');
+}
+
+function updDur(){const s=document.getElementById('f-start').value,e=document.getElementById('f-end').value;const p=document.getElementById('dpill');if(!s||!e){p.style.display='none';return;}const d=Math.ceil((new Date(e)-new Date(s))/86400000);if(d<=0){p.style.display='none';return;}p.style.display='flex';document.getElementById('dur-txt').textContent=`${d} day${d>1?'s':''} trip`;const fmt=x=>new Date(x).toLocaleDateString('en-IN',{day:'numeric',month:'short'});document.getElementById('dur-dt').textContent=`${fmt(s)} → ${fmt(e)}`;}
+function updB(v){const n=parseInt(v);document.getElementById('bdsp').textContent=n>=100000?'₹'+(n/100000).toFixed(n%100000===0?0:1)+'L':'₹'+n.toLocaleString('en-IN');}
+function setB(v){document.getElementById('brng').value=v;updB(v);}
+function pD(n){document.getElementById('f-dest').value=n;document.querySelectorAll('[onclick^="pD("]').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick')===`pD('${n}')`));}
+function selTT(t){tripType=t;document.getElementById('tt-india').classList.toggle('on',t==='india');document.getElementById('tt-intl').classList.toggle('on',t==='international');}
+function chg(f,d){if(f==='adults'){adults=Math.max(1,Math.min(20,adults+d));document.getElementById('av').textContent=adults;}if(f==='children'){kids=Math.max(0,Math.min(10,kids+d));document.getElementById('cv').textContent=kids;}}
+function togI(id){const btn=document.getElementById('ib-'+id);selInts=selInts.includes(id)?selInts.filter(x=>x!==id):[...selInts,id];btn.classList.toggle('on',selInts.includes(id));document.getElementById('sel-ints').innerHTML=selInts.map(x=>{const i=INTS.find(d=>d.id===x);return i?`<span class="tag tag-or">${i.i} ${i.l}</span>`:''}).join('');}
+function sP(g,v){const gp=PG[g];if(!gp)return;gp.set(v);document.querySelectorAll(`[id^="${gp.pfx}"]`).forEach(b=>b.classList.toggle('on',b.id===gp.pfx+v));}
+function goStep(n){if(n<1||n>4)return;document.getElementById('s'+cs).classList.remove('on');cs=n;document.getElementById('s'+n).classList.add('on');document.getElementById('prog').style.width=(n/4*100)+'%';document.getElementById('slc').textContent=`Step ${n} of 4`;document.getElementById('spct').textContent=(n/4*100)+'%';document.querySelectorAll('.slb').forEach((l,i)=>l.classList.toggle('on',i===n-1));document.getElementById('btn-back').style.visibility=n===1?'hidden':'visible';const nb=document.getElementById('btn-next');if(n===4){nb.textContent='✨ Generate My Trip!';nb.setAttribute('onclick','generateTrip()');}else{nb.textContent='Next Step →';nb.setAttribute('onclick','nextStep()');}window.scrollTo({top:document.getElementById('page-planner').offsetTop-65,behavior:'smooth'});}
+function nextStep(){if(cs===1){if(!document.getElementById('f-dest').value.trim()){toast('⚠️ Enter destination','warn');return;}if(!document.getElementById('f-from').value.trim()){toast('⚠️ Enter source city','warn');return;}}if(cs===2){const s=document.getElementById('f-start').value,e=document.getElementById('f-end').value;if(!s||!e){toast('⚠️ Select travel dates','warn');return;}if(new Date(e)<=new Date(s)){toast('⚠️ End date must be after start','warn');return;}}goStep(cs+1);}
+
+// ── 8. CHAT ───────────────────────────────────────────
+const QP=['🏖️ Plan 5-day Goa under ₹25k','💑 Honeymoon Bali ₹1 lakh','🌍 Budget Europe ₹2 lakhs','🏔️ Ladakh adventure ₹30k','🌴 Thailand 7 days ₹50k','🧘 Rishikesh retreat ₹12k'];
+let chatH=[];
+
+function initChat() {
+  document.getElementById('qchips').innerHTML=QP.map(p=>`<button class="qchip" onclick="qS('${p.replace(/'/g,"\\'")}') ">${p}</button>`).join('');
+  addMsg('ai',"✈️ Namaste! I'm TravelBuddy AI!\n\nI'm running in "+(getKey()?'🟢 Gemini AI mode':'🕸️ Web Crawl mode')+" right now.\n\nAsk me anything: budgets, destinations, visas, best time to visit.\n\nTry: \"Plan a 5-day Goa trip for 2 under ₹30,000\"");
+}
+
+function addMsg(r,txt){const box=document.getElementById('chat-msgs');const el=document.createElement('div');el.className=`cm ${r==='ai'?'ai':'usr'}`;const ts=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});el.innerHTML=r==='ai'?`<div class="cm-av">✈️</div><div><div class="cm-bub">${esc(txt)}</div><div class="cm-ts">${ts}</div></div>`:`<div><div class="cm-bub">${esc(txt)}</div><div class="cm-ts" style="text-align:right">${ts}</div></div>`;box.appendChild(el);box.scrollTop=box.scrollHeight;}
+function addTyping(){const box=document.getElementById('chat-msgs');const el=document.createElement('div');el.className='cm ai';el.id='typing';el.innerHTML=`<div class="cm-av">✈️</div><div class="typing"><span></span><span></span><span></span></div>`;box.appendChild(el);box.scrollTop=box.scrollHeight;}
+function rmTyping(){document.getElementById('typing')?.remove();}
+function ckd(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+async function qS(t){document.getElementById('ci').value=t;await sendChat();}
+
+async function sendChat() {
+  const inp=document.getElementById('ci');const msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.disabled=true;addMsg('user',msg);chatH.push({role:'user',content:msg});addTyping();
+  const sys=`You are TravelBuddy AI — friendly expert travel assistant for Indian travellers. Be concise (under 250 words). Use bullet points. Always give INR prices.`;
+  const conv=chatH.slice(-8).map(m=>`${m.role==='user'?'User':'TravelBuddy'}: ${m.content}`).join('\n');
+  try {
+    let reply;
+    if(getKey()){reply=await callGemini(conv+'\nTravelBuddy:',sys);}
+    else{reply=await wcChat(msg);}
+    rmTyping();addMsg('ai',reply);chatH.push({role:'assistant',content:reply});
+  } catch(e){rmTyping();addMsg('ai',getKey()?'Sorry, Gemini had an issue. Please try again.':await wcChat(msg));}
+  inp.disabled=false;inp.focus();
+}
+
+async function wcChat(msg) {
+  await new Promise(r=>setTimeout(r,500));
+  const m=msg.toLowerCase();
+  if(m.includes('goa'))return"🏖️ **Goa** — great choice!\n\n📅 Best time: Oct–Mar\n💰 Budget: ₹15k-25k/person (5 days)\n✈️ Flights from Mumbai: ₹2,500-4,000\n🏨 Hotels: ₹800-4,000/night\n\n🎯 Must-do:\n• Baga/Calangute beaches & water sports\n• Fort Aguada + Old Goa churches\n• Palolem for peaceful South Goa\n\n🍽️ Must eat: Fish curry rice, Bebinca, Solkadhi\n\nUse **Plan Trip** tab for full itinerary! ✨";
+  if(m.includes('bali'))return"🌴 **Bali** — dream destination!\n\n📅 Best time: Apr–Oct\n💰 Budget: ₹45k-70k/person (7 days)\n🛂 Visa on arrival: USD 35 (≈₹2,900)\n✈️ Return flights from India: ₹18k-28k\n\n🎯 Must-do:\n• Tegallalang rice terraces at sunrise\n• Tanah Lot temple at sunset\n• Ubud Monkey Forest + art market\n\nHead to **Plan Trip** for full itinerary! ✈️";
+  if(m.includes('budget')||m.includes('cheap'))return"💰 **Best budget destinations:**\n\n**Under ₹15k (5 days):** Rishikesh, Hampi, Coorg\n**Under ₹30k (7 days):** Goa, Manali, Andaman\n**Under ₹50k international:** Thailand, Vietnam, Sri Lanka\n\n💡 Fly Tue/Wed for cheapest fares!";
+  if(m.includes('visa'))return"🛂 **Visa-free for Indians:**\n\n✅ No visa: Nepal, Bhutan, Maldives, Mauritius\n🏷️ On arrival: Bali (free), Maldives (free), Thailand (15d free)\n📝 e-Visa: Sri Lanka ($20), Vietnam ($25), Kenya ($50)";
+  return`✈️ I can help plan any trip!\n\nCurrently in ${getKey()?'🟢 Gemini AI':'🕸️ Web Crawl'} mode.\n${getKey()?'':'💡 Add Gemini key in the orange bar at top for AI responses!\n\n'}Tell me: **Where + budget?**\n\nOr use **Plan Trip** tab for full itinerary! 🗺️`;
+}
+
+// ── 9. EXPLORE ────────────────────────────────────────
+const DESTS=[{n:'Goa',c:'India',e:'🏖️',f:'₹15k',t:'Beach',tp:'india',r:4.8,d:'3-5'},{n:'Bali',c:'Indonesia',e:'🌴',f:'₹45k',t:'Tropical',tp:'intl',r:4.9,d:'5-7'},{n:'Manali',c:'India',e:'🏔️',f:'₹12k',t:'Mountains',tp:'india',r:4.7,d:'4-6'},{n:'Paris',c:'France',e:'🗼',f:'₹1.2L',t:'Culture',tp:'intl',r:4.9,d:'5-7'},{n:'Thailand',c:'Bangkok',e:'🐘',f:'₹40k',t:'Budget',tp:'intl',r:4.8,d:'7-10'},{n:'Maldives',c:'Islands',e:'🐠',f:'₹1.5L',t:'Luxury',tp:'intl',r:5.0,d:'4-7'},{n:'Rajasthan',c:'India',e:'🏰',f:'₹18k',t:'Heritage',tp:'india',r:4.7,d:'7-10'},{n:'Singapore',c:'Singapore',e:'🌃',f:'₹60k',t:'City',tp:'intl',r:4.8,d:'4-5'},{n:'Kerala',c:'India',e:'🌿',f:'₹20k',t:'Nature',tp:'india',r:4.9,d:'5-7'},{n:'Dubai',c:'UAE',e:'🏙️',f:'₹70k',t:'Luxury',tp:'intl',r:4.7,d:'4-5'},{n:'Andaman',c:'India',e:'🤿',f:'₹25k',t:'Beach',tp:'india',r:4.8,d:'5-7'},{n:'Tokyo',c:'Japan',e:'🗾',f:'₹1.5L',t:'Culture',tp:'intl',r:4.9,d:'7-10'},{n:'Leh Ladakh',c:'India',e:'⛰️',f:'₹22k',t:'Adventure',tp:'india',r:4.9,d:'7-10'},{n:'Vietnam',c:'Hanoi',e:'🛺',f:'₹35k',t:'Budget',tp:'intl',r:4.7,d:'7-10'},{n:'Rishikesh',c:'India',e:'🧘',f:'₹8k',t:'Spiritual',tp:'india',r:4.8,d:'3-5'},{n:'Switzerland',c:'Europe',e:'🏔️',f:'₹2L',t:'Scenic',tp:'intl',r:5.0,d:'7-10'}];
+
+function initExplore(){
+  const F=['All','India','International','Beach','Mountains','Culture','Adventure','Luxury','Budget'];
+  document.getElementById('frow').innerHTML=F.map(f=>`<button class="filter-btn ${f==='All'?'on':''}" id="ef-${f}" onclick="setF('${f}')">${f==='India'?'🇮🇳 India':f==='International'?'✈️ International':f}</button>`).join('');
+  renderExp('All');
+}
+function setF(f){document.querySelectorAll('[id^="ef-"]').forEach(b=>b.classList.toggle('on',b.id===`ef-${f}`));renderExp(f);}
+function renderExp(f){const fl=f.toLowerCase();const list=DESTS.filter(d=>fl==='all'||d.tp===(fl==='international'?'intl':fl)||d.t.toLowerCase()===fl);document.getElementById('exp-grid').innerHTML=list.map(d=>`<button class="dc" onclick="pickD('${d.n}')"><span class="dc-em">${d.e}</span><div class="dc-name">${d.n}</div><div class="dc-ctry">${d.c}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><span class="dc-price">${d.f}</span><span style="font-size:.73rem;color:#fbbf24">⭐ ${d.r}</span></div><div style="display:flex;gap:.35rem;flex-wrap:wrap"><span class="tag tag-or">${d.t}</span><span class="tag tag-wh">${d.d}d</span></div></button>`).join('');}
+function pickD(n){document.getElementById('f-dest').value=n;nav('planner');}
+
+function initHomeD(){document.getElementById('home-dests').innerHTML=DESTS.slice(0,8).map(d=>`<button class="dc" onclick="pickD('${d.n}')"><span class="dc-em">${d.e}</span><div class="dc-name">${d.n}</div><div class="dc-ctry">${d.c}</div><div class="dc-price">${d.f}</div><div style="margin-top:.55rem"><span class="tag tag-or">${d.t}</span></div></button>`).join('');}
+
+function heroSearch(){const from=document.getElementById('h-from').value.trim();const to=document.getElementById('h-to').value.trim();const bgt=document.getElementById('h-bgt').value;if(from)document.getElementById('f-from').value=from;if(to)document.getElementById('f-dest').value=to;if(bgt){document.getElementById('brng').value=bgt;updB(bgt);}nav('planner');}
+
+// ── 10. NAV ───────────────────────────────────────────
+function nav(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tnav').forEach(l=>l.classList.remove('on'));document.querySelectorAll('.bn-btn').forEach(b=>b.classList.remove('on'));document.getElementById('page-'+n).classList.add('on');document.querySelector(`.tnav[onclick*="'${n}'"]`)?.classList.add('on');document.getElementById('bn-'+n)?.classList.add('on');window.scrollTo({top:0,behavior:'smooth'});closeMob();}
+function toggleMob(){document.getElementById('mob-menu').classList.toggle('on');}
+function closeMob(){document.getElementById('mob-menu').classList.remove('on');}
+
+// ── 11. UTILS ─────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
+let toastT;
+function toast(msg,type='ok'){document.getElementById('t-ic').textContent=type==='warn'?'⚠️':type==='error'?'❌':'✅';document.getElementById('t-msg').textContent=msg;const el=document.getElementById('toast');el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),3500);}
+
+// ── 12. INIT ──────────────────────────────────────────
+(function init(){
+  updateBanner();
+  initForm();
+  initHomeD();
+  initExplore();
+  initChat();
+  // If localStorage has a key, pre-show it (masked) in the input
+  const lk=localStorage.getItem('tb_key');
+  if(lk){document.getElementById('key-inp').value=lk.slice(0,8)+'••••••••••••'+lk.slice(-4);document.getElementById('key-inp').classList.add('set');}
+})();
 </script>
 </body>
-</htm
+</html>
