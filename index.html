@@ -1,3 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#f97316"/>
+<title>TravelBuddy AI — Smart Travel Planner by Raman Jha</title>
+<meta name="description" content="AI-powered travel planner. Gemini 2.5 Flash. Free, no login."/>
+<!-- ═══ GITHUB ACTIONS injects key here via sed ═══ -->
+<meta name="gemini-api-key" content="REPLACE_ME_WITH_KEY"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#0a0f1e;color:#f1f5f9;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input,select,textarea{font-family:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:root{
+  --or:#f97316;--or-d:#ea580c;--bl:#0ea5e9;
+  --dk:#0a0f1e;--dk2:#0f172a;--dk3:#1e293b;
+  --tx:#f1f5f9;--mu:rgba(241,245,249,.55);--mu2:rgba(241,245,249,.3);
+  --gb:rgba(255,255,255,.04);--gbr:rgba(255,255,255,.09);
+  --glow:0 0 40px rgba(249,115,22,.18);
+  --r:14px;--rl:22px;--rxl:30px;
+}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--dk2)}
+::-webkit-scrollbar-thumb{background:var(--or);border-radius:3px}
+.glass{background:var(--gb);backdrop-filter:blur(20px);border:1px solid var(--gbr)}
+.display{font-family:'Playfair Display',serif}
+.grad{background:linear-gradient(135deg,#f97316,#facc15,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tag{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:999px;font-size:.7rem;font-weight:600}
+.tag-or{background:rgba(249,115,22,.15);color:#fb923c;border:1px solid rgba(249,115,22,.25)}
+.tag-gn{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
+.tag-am{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
+.tag-rd{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.tag-bl{background:rgba(14,165,233,.15);color:#38bdf8;border:1px solid rgba(14,165,233,.25)}
+.tag-wh{background:rgba(255,255,255,.07);color:var(--mu);border:1px solid var(--gbr)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;font-weight:600;border-radius:var(--r);transition:all .2s;font-size:.875rem;white-space:nowrap;cursor:pointer}
+.btn-or{background:var(--or);color:#fff;padding:.7rem 1.4rem}
+.btn-or:hover{background:var(--or-d);box-shadow:var(--glow);transform:translateY(-1px)}
+.btn-gl{background:var(--gb);color:var(--tx);padding:.7rem 1.4rem;border:1px solid var(--gbr)}
+.btn-gl:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.btn-sm{padding:.45rem 1rem;font-size:.78rem}
+.btn-xs{padding:.3rem .75rem;font-size:.72rem}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.inp{width:100%;background:var(--gb);border:1px solid var(--gbr);color:var(--tx);padding:.7rem 1rem;border-radius:var(--r);font-size:.875rem;outline:none;transition:border-color .2s}
+.inp::placeholder{color:var(--mu2)}
+.inp:focus{border-color:rgba(249,115,22,.5)}
+.lbl{display:block;font-size:.78rem;color:var(--mu);margin-bottom:.45rem;font-weight:500}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem;width:100%}
+.wrap-sm{max-width:820px;margin:0 auto;padding:0 1.25rem;width:100%}
+
+/* ── API KEY BANNER ── */
+#api-banner{width:100%;padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;position:relative;z-index:300;transition:background .3s,border .3s}
+#api-banner.mode-none{background:linear-gradient(135deg,rgba(249,115,22,.13),rgba(234,88,12,.08));border-bottom:2px solid rgba(249,115,22,.4)}
+#api-banner.mode-local{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(16,185,129,.05));border-bottom:2px solid rgba(34,197,94,.3)}
+#api-banner.mode-meta{background:linear-gradient(135deg,rgba(14,165,233,.08),rgba(6,182,212,.05));border-bottom:2px solid rgba(14,165,233,.3)}
+#api-banner.mode-crawl{background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(139,92,246,.06));border-bottom:2px solid rgba(168,85,247,.3)}
+.banner-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;animation:pglow 2s ease-in-out infinite}
+.dot-none{background:#f97316;box-shadow:0 0 8px rgba(249,115,22,.6)}
+.dot-ai{background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,.6)}
+.dot-crawl{background:#c084fc;box-shadow:0 0 8px rgba(192,132,252,.6)}
+.banner-info{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.banner-label{font-size:.82rem;font-weight:700;color:var(--tx)}
+.banner-sub{font-size:.72rem;color:var(--mu);margin-top:1px}
+.key-field-wrap{display:flex;align-items:center;gap:.45rem;flex:1;max-width:500px;min-width:200px}
+.key-field{flex:1;background:rgba(0,0,0,.4);border:2px solid rgba(249,115,22,.4);color:var(--tx);padding:.5rem .9rem;border-radius:.875rem;font-size:.82rem;outline:none;transition:border-color .2s;font-family:monospace}
+.key-field::placeholder{color:var(--mu2);font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem}
+.key-field:focus{border-color:rgba(249,115,22,.8);background:rgba(0,0,0,.6)}
+.key-field.set{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.05)}
+.vis-btn{width:32px;height:32px;border-radius:.55rem;background:rgba(255,255,255,.07);border:1px solid var(--gbr);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.vis-btn:hover{background:rgba(255,255,255,.14)}
+.banner-btns{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.get-key-a{font-size:.72rem;color:#38bdf8;text-decoration:underline;white-space:nowrap}
+
+/* ── Topbar ── */
+#topbar{position:sticky;top:0;z-index:200;background:rgba(10,15,30,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--gbr)}
+.topbar-inner{height:60px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.logo{display:flex;align-items:center;gap:.55rem;cursor:pointer}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--or),var(--or-d));display:flex;align-items:center;justify-content:center;font-size:1.1rem;animation:pglow 2.5s ease-in-out infinite}
+.logo-txt{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700}
+.topbar-nav{display:flex;align-items:center;gap:.15rem}
+.tnav{padding:.4rem .9rem;border-radius:.6rem;font-size:.82rem;font-weight:500;color:var(--mu);transition:all .18s}
+.tnav:hover{color:var(--tx);background:rgba(255,255,255,.05)}
+.tnav.on{color:var(--or);background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.2)}
+.hbg{display:none;flex-direction:column;gap:5px;padding:.45rem;border-radius:.5rem}
+.hbg span{width:20px;height:2px;background:var(--tx);border-radius:2px}
+.mob-menu{display:none;position:fixed;top:0;inset-x:0;z-index:199;padding:4.5rem 1rem 1rem;background:rgba(10,15,30,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--gbr)}
+.mob-menu.on{display:block}
+.mob-menu a{display:block;padding:.7rem 1rem;border-radius:.7rem;color:var(--mu);font-weight:500;margin-bottom:.25rem}
+.mob-menu a.on{color:var(--tx);background:rgba(255,255,255,.06)}
+#bnav{display:none;position:fixed;bottom:0;inset-x:0;z-index:200;background:rgba(10,15,30,.95);backdrop-filter:blur(20px);border-top:1px solid var(--gbr);padding:.4rem 0}
+.bn-inner{display:flex;justify-content:space-around}
+.bn-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.45rem .75rem;border-radius:.75rem}
+.bn-btn.on .bn-ic{background:rgba(249,115,22,.15)}
+.bn-ic{width:2rem;height:2rem;border-radius:.55rem;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.bn-lb{font-size:.62rem;color:var(--mu);font-weight:500}
+.bn-btn.on .bn-lb{color:var(--or)}
+.page{display:none;padding-top:1.5rem;padding-bottom:5rem;min-height:calc(100vh - 60px)}
+.page.on{display:block}
+
+/* ── Hero ── */
+.hero{min-height:calc(88vh - 60px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:2rem 1.25rem;text-align:center}
+.hero-orb1{position:absolute;top:10%;left:5%;width:380px;height:380px;background:rgba(249,115,22,.07);border-radius:50%;filter:blur(60px);pointer-events:none}
+.hero-orb2{position:absolute;bottom:10%;right:5%;width:460px;height:460px;background:rgba(14,165,233,.05);border-radius:50%;filter:blur(80px);pointer-events:none}
+.hero-content{position:relative;z-index:2;max-width:860px;width:100%}
+.hero-badge{display:inline-flex;align-items:center;gap:.45rem;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);padding:.38rem .95rem;border-radius:999px;font-size:.78rem;color:#fb923c;font-weight:600;margin-bottom:1.5rem}
+.hero-h1{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6.5vw,4.6rem);font-weight:800;line-height:1.1;margin-bottom:1.1rem}
+.hero-sub{color:var(--mu);font-size:clamp(.95rem,2.2vw,1.15rem);max-width:560px;margin:0 auto 2.2rem;line-height:1.75}
+.hero-bar{background:rgba(255,255,255,.04);border:1px solid var(--gbr);border-radius:var(--rl);padding:.45rem;display:flex;flex-wrap:wrap;gap:.4rem;max-width:820px;margin:0 auto 2.25rem;box-shadow:var(--glow)}
+.hb-field{display:flex;align-items:center;gap:.45rem;padding:.45rem .7rem;flex:1;min-width:130px}
+.hb-field input{background:none;border:none;outline:none;color:var(--tx);font-size:.875rem;width:100%;min-width:60px}
+.hb-field input::placeholder{color:var(--mu2)}
+.hb-div{width:1px;background:var(--gbr);align-self:stretch;margin:.2rem 0;flex-shrink:0}
+.hero-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:2.25rem}
+.hs-val{font-size:1.4rem;font-weight:700}
+.hs-lbl{font-size:.72rem;color:var(--mu);margin-top:1px}
+.sec{padding:4rem 1.25rem}
+.sec-hd{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3.8vw,2.5rem);font-weight:700;margin-bottom:.875rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}
+.g-card{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:1.75rem;transition:all .25s}
+.g-card:hover{border-color:rgba(249,115,22,.3);box-shadow:var(--glow);transform:translateY(-2px)}
+.g-icon{width:48px;height:48px;border-radius:.8rem;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:1.1rem;transition:transform .25s}
+.g-card:hover .g-icon{transform:scale(1.1)}
+.dc{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:1.4rem;cursor:pointer;transition:all .22s;text-align:left;width:100%}
+.dc:hover{border-color:rgba(249,115,22,.35);box-shadow:var(--glow);transform:translateY(-2px)}
+.dc-em{font-size:2.3rem;display:block;margin-bottom:.65rem;transition:transform .22s}
+.dc:hover .dc-em{transform:scale(1.12)}
+.dc-name{font-weight:700;font-size:.95rem;margin-bottom:.15rem}
+.dc-ctry{color:var(--mu2);font-size:.72rem;margin-bottom:.65rem}
+.dc-price{color:var(--or);font-weight:600;font-size:.875rem}
+.prog-track{background:rgba(255,255,255,.08);border-radius:999px;height:5px;overflow:hidden;margin-bottom:.4rem}
+.prog-fill{height:5px;background:linear-gradient(90deg,var(--or),#facc15);border-radius:999px;transition:width .4s ease}
+.step-lbs{display:flex;justify-content:space-between;margin-bottom:1.5rem}
+.slb{font-size:.7rem;color:var(--mu2);cursor:pointer;transition:color .2s}
+.slb.on{color:var(--or);font-weight:600}
+.fc{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);padding:2.25rem}
+.fstep{display:none}
+.fstep.on{display:block}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem}
+.fg{margin-bottom:1.1rem}
+.ig{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;margin-bottom:1.1rem}
+.ib{padding:.8rem .4rem;border-radius:var(--r);border:1px solid var(--gbr);background:var(--gb);cursor:pointer;transition:all .18s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.ib:hover{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.05)}
+.ib.on{border-color:var(--or);background:rgba(249,115,22,.15)}
+.ib .ie{font-size:1.3rem}
+.ib .il{font-size:.68rem;font-weight:500;color:var(--mu);line-height:1.2}
+.ib.on .il{color:#fb923c}
+.ctr{display:flex;align-items:center;gap:.9rem}
+.cbtn{width:2.1rem;height:2.1rem;border-radius:.55rem;border:1px solid var(--gbr);background:var(--gb);font-size:1rem;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.cbtn:hover{border-color:var(--or)}
+.cval{font-size:1.4rem;font-weight:700;color:var(--or);min-width:1.75rem;text-align:center}
+.rng{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.1);outline:none;cursor:pointer}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--or);cursor:pointer;box-shadow:0 0 0 3px rgba(249,115,22,.2)}
+.chip-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.875rem}
+.chip{padding:.38rem .9rem;border-radius:999px;border:1px solid var(--gbr);background:var(--gb);font-size:.76rem;cursor:pointer;color:var(--mu);transition:all .18s}
+.chip:hover{border-color:rgba(249,115,22,.3);color:var(--tx)}
+.chip.on{border-color:var(--or);background:rgba(249,115,22,.15);color:#fb923c}
+.hotel-list .chip{display:block;width:100%;text-align:left;padding:.65rem .9rem;border-radius:.7rem;margin-bottom:.45rem}
+.dpill{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.2);border-radius:.75rem;padding:.7rem 1.1rem;display:none;align-items:center;gap:.7rem;margin-bottom:1.1rem}
+.fnav{display:flex;justify-content:space-between;align-items:center;margin-top:1.75rem;padding-top:1.25rem;border-top:1px solid var(--gbr)}
+.r-hdr{background:var(--gb);border:1px solid rgba(249,115,22,.2);border-radius:var(--rxl);padding:1.5rem;margin-bottom:1.25rem}
+.r-tabs{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.rtab{padding:.45rem 1.1rem;border-radius:.7rem;font-size:.82rem;font-weight:500;border:1px solid var(--gbr);background:var(--gb);color:var(--mu);cursor:pointer;transition:all .18s;white-space:nowrap}
+.rtab:hover{color:var(--tx)}
+.rtab.on{background:var(--or);color:#fff;border-color:var(--or)}
+.rpanel{display:none}
+.rpanel.on{display:block}
+.day-grid{display:grid;grid-template-columns:200px 1fr;gap:1.25rem}
+.day-sb{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:.875rem;position:sticky;top:70px;max-height:calc(100vh - 90px);overflow-y:auto}
+.dbn{width:100%;text-align:left;padding:.65rem .875rem;border-radius:.7rem;border:none;background:none;color:var(--mu);font-size:.8rem;cursor:pointer;transition:all .18s;margin-bottom:.3rem}
+.dbn:hover{background:rgba(255,255,255,.05);color:var(--tx)}
+.dbn.on{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:#fb923c}
+.dbn .dn{font-weight:700;font-size:.85rem;display:block}
+.dbn .dt{font-size:.7rem;opacity:.65;display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-card{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--r);padding:1.1rem;margin-bottom:.75rem;transition:border-color .18s}
+.act-card:hover{border-color:rgba(249,115,22,.2)}
+.meal-g{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:.875rem}
+.meal-c{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--r);padding:.875rem}
+.tp-item{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--r);padding:1.1rem;margin-bottom:.65rem}
+.tp-item.hi{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.tp-item.cr{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)}
+.gem-c{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:1.1rem;margin-bottom:.65rem}
+.ec-g{display:grid;grid-template-columns:repeat(2,1fr);gap:.65rem}
+.ec-c{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);border-radius:.8rem;padding:.875rem;display:flex;align-items:center;gap:.75rem}
+.pk-g{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem}
+.pk-it{background:var(--gb);border:1px solid var(--gbr);border-radius:.7rem;padding:.8rem;display:flex;align-items:center;gap:.65rem;cursor:pointer}
+.pk-it input{accent-color:var(--or);width:14px;height:14px;flex-shrink:0}
+.bbar-row{display:flex;align-items:center;gap:.875rem;margin-bottom:.75rem}
+.bbl{width:100px;font-size:.78rem;color:var(--mu);text-transform:capitalize;flex-shrink:0}
+.bbt{flex:1;background:rgba(255,255,255,.08);border-radius:999px;height:7px;overflow:hidden}
+.bbf{height:7px;background:linear-gradient(90deg,var(--or),#facc15);border-radius:999px;transition:width .5s ease}
+.bbv{width:105px;text-align:right;font-size:.8rem;font-weight:500}
+.fl-card{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:1.35rem;margin-bottom:.875rem;transition:border-color .18s}
+.fl-card:hover{border-color:rgba(249,115,22,.25)}
+.ht-card{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rl);padding:1.35rem;margin-bottom:.875rem;display:flex;gap:1.1rem;align-items:flex-start;transition:border-color .18s}
+.ht-card:hover{border-color:rgba(249,115,22,.25)}
+.ht-img{width:90px;height:70px;background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(14,165,233,.15));border-radius:.7rem;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0}
+.wx-g{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
+.wx-b{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--r);padding:.875rem;text-align:center}
+.fd-g{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.fd-c{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--r);padding:1.1rem}
+.fd-c.mt{border-color:rgba(249,115,22,.3)}
+.fb-banner{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:var(--r);padding:.875rem 1.25rem;display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1.25rem;font-size:.82rem;color:var(--mu)}
+.chat-box{background:var(--gb);border:1px solid var(--gbr);border-radius:var(--rxl);overflow:hidden}
+.chat-msgs{height:440px;overflow-y:auto;padding:1.35rem;display:flex;flex-direction:column;gap:.875rem}
+.cm{display:flex;gap:.65rem;max-width:84%}
+.cm.usr{align-self:flex-end;flex-direction:row-reverse}
+.cm-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--or),var(--or-d));display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;margin-top:2px}
+.cm-bub{padding:.8rem 1rem;border-radius:var(--r);font-size:.84rem;line-height:1.6;white-space:pre-wrap}
+.cm.ai .cm-bub{background:rgba(255,255,255,.06);border:1px solid var(--gbr)}
+.cm.usr .cm-bub{background:rgba(249,115,22,.18);border:1px solid rgba(249,115,22,.25)}
+.cm-ts{font-size:.65rem;color:var(--mu2);margin-top:.3rem}
+.chat-inp-row{border-top:1px solid var(--gbr);padding:.875rem 1.1rem;display:flex;gap:.65rem}
+.chat-inp{flex:1;background:none;border:none;outline:none;color:var(--tx);font-size:.875rem}
+.chat-inp::placeholder{color:var(--mu2)}
+.qchip{padding:.38rem .8rem;border-radius:999px;border:1px solid var(--gbr);background:var(--gb);font-size:.73rem;color:var(--mu);cursor:pointer;transition:all .18s}
+.qchip:hover{border-color:rgba(249,115,22,.3);color:var(--tx)}
+.typing{display:flex;gap:4px;padding:.8rem 1rem;background:rgba(255,255,255,.06);border:1px solid var(--gbr);border-radius:var(--r);align-self:flex-start}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--or);animation:bce .8s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+.cr-card{background:var(--gb);border:1px solid rgba(249,115,22,.25);border-radius:var(--rxl);padding:2.5rem;display:flex;align-items:center;gap:2.25rem;flex-wrap:wrap}
+.cr-av{width:110px;height:110px;border-radius:1.75rem;flex-shrink:0;background:linear-gradient(135deg,var(--or),#ea580c,var(--bl));display:flex;align-items:center;justify-content:center;font-size:3.2rem;animation:pglow 2.5s ease-in-out infinite;box-shadow:0 0 60px rgba(249,115,22,.2)}
+.filter-btn{padding:.45rem 1rem;border-radius:999px;border:1px solid var(--gbr);background:var(--gb);font-size:.78rem;color:var(--mu);cursor:pointer;transition:all .18s}
+.filter-btn:hover{color:var(--tx);border-color:rgba(255,255,255,.2)}
+.filter-btn.on{background:var(--or);color:#fff;border-color:var(--or)}
+#lov{display:none;position:fixed;inset:0;z-index:999;background:rgba(10,15,30,.82);backdrop-filter:blur(8px);align-items:center;justify-content:center}
+#lov.on{display:flex}
+.lov-box{background:#0f172a;border:1px solid rgba(249,115,22,.3);border-radius:var(--rxl);padding:2.75rem;text-align:center;max-width:360px;width:92%;box-shadow:var(--glow)}
+.lov-plane{font-size:3.25rem;margin-bottom:1.1rem;animation:flt 2s ease-in-out infinite}
+.lv-step{display:flex;align-items:center;gap:.65rem;font-size:.82rem;color:var(--mu);margin-bottom:.5rem}
+.lv-dot{width:7px;height:7px;border-radius:50%;background:var(--or);animation:pglow 1s ease-in-out infinite;flex-shrink:0}
+#toast{position:fixed;bottom:5rem;right:1.35rem;z-index:9999;background:var(--dk3);border:1px solid rgba(249,115,22,.3);border-radius:var(--r);padding:.875rem 1.35rem;font-size:.84rem;transform:translateY(80px);opacity:0;transition:.28s;pointer-events:none;display:flex;align-items:center;gap:.65rem;min-width:200px;max-width:320px}
+#toast.on{transform:translateY(0);opacity:1}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes pglow{0%,100%{box-shadow:0 0 20px rgba(249,115,22,.25)}50%{box-shadow:0 0 40px rgba(249,115,22,.55)}}
+@keyframes bce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.flt{animation:flt 6s ease-in-out infinite}
+@media(max-width:900px){.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(2,1fr)}.ig{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.topbar-nav{display:none}.hbg{display:flex}#bnav{display:block}.page{padding-bottom:80px}.g2,.g3{grid-template-columns:1fr}.frow{grid-template-columns:1fr}.day-grid{grid-template-columns:1fr}.day-sb{position:static;max-height:none}.meal-g{grid-template-columns:1fr}.ec-g,.pk-g,.fd-g{grid-template-columns:1fr}.wx-g{grid-template-columns:repeat(2,1fr)}.hero-bar{flex-direction:column}.hb-div{display:none}.cr-card{flex-direction:column;text-align:center}.cr-av{margin:0 auto}#api-banner{flex-direction:column;align-items:flex-start}.key-field-wrap{max-width:100%;width:100%}}
+@media(max-width:480px){.g4{grid-template-columns:1fr 1fr}.ig{grid-template-columns:repeat(2,1fr)}.fc{padding:1.35rem}.wrap,.wrap-sm{padding:0 .875rem}}
+</style>
+</head>
+<body>
+
+<!-- ════ API KEY BANNER ════ -->
+<div id="api-banner" class="mode-none">
+  <div class="banner-info">
+    <div class="banner-dot dot-none" id="bdot"></div>
+    <div>
+      <div class="banner-label" id="blabel">🔑 Enter Gemini API Key to activate full AI</div>
+      <div class="banner-sub" id="bsub">No key? Web Crawl Fallback activates automatically — still works!</div>
+    </div>
+  </div>
+  <div class="key-field-wrap">
+    <input class="key-field" id="key-inp" type="password"
+      placeholder="Paste key here — AIzaSy… (get free key →)"
+      autocomplete="off" spellcheck="false"
+      oninput="onKeyType()" onkeydown="if(event.key==='Enter')saveKey()"/>
+    <button class="vis-btn" id="vis-btn" onclick="toggleVis()" title="Show/hide">👁</button>
+  </div>
+  <div class="banner-btns">
+    <button class="btn btn-or btn-sm" id="save-btn" onclick="saveKey()">✅ Activate AI</button>
+    <button class="btn btn-gl btn-sm" id="clear-btn" style="display:none" onclick="clearKey()">🗑 Clear</button>
+    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="get-key-a">Get free key →</a>
+  </div>
+</div>
+
+<!-- ════ TOPBAR ════ -->
+<nav id="topbar">
+  <div class="wrap topbar-inner">
+    <div class="logo" onclick="nav('home')">
+      <div class="logo-icon">✈️</div>
+      <span class="logo-txt grad">TravelBuddy AI</span>
+    </div>
+    <div class="topbar-nav">
+      <a class="tnav on" onclick="nav('home')" href="#">Home</a>
+      <a class="tnav" onclick="nav('planner')" href="#">Plan Trip</a>
+      <a class="tnav" onclick="nav('chat')" href="#">AI Chat</a>
+      <a class="tnav" onclick="nav('explore')" href="#">Explore</a>
+      <a class="tnav" onclick="nav('about')" href="#">About</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="btn btn-or btn-sm" onclick="nav('planner')">✨ Plan Free</button>
+      <button class="hbg" id="hbg" onclick="toggleMob()"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<div class="mob-menu" id="mob-menu">
+  <a class="on" onclick="nav('home');closeMob()" href="#">🏠 Home</a>
+  <a onclick="nav('planner');closeMob()" href="#">🗺️ Plan Trip</a>
+  <a onclick="nav('chat');closeMob()" href="#">💬 AI Chat</a>
+  <a onclick="nav('explore');closeMob()" href="#">🌍 Explore</a>
+  <a onclick="nav('about');closeMob()" href="#">ℹ️ About</a>
+</div>
+<nav id="bnav">
+  <div class="bn-inner">
+    <button class="bn-btn on" id="bn-home" onclick="nav('home')"><div class="bn-ic">🏠</div><span class="bn-lb">Home</span></button>
+    <button class="bn-btn" id="bn-explore" onclick="nav('explore')"><div class="bn-ic">🌍</div><span class="bn-lb">Explore</span></button>
+    <button class="bn-btn" id="bn-planner" onclick="nav('planner')"><div class="bn-ic">✈️</div><span class="bn-lb">Plan</span></button>
+    <button class="bn-btn" id="bn-chat" onclick="nav('chat')"><div class="bn-ic">💬</div><span class="bn-lb">Chat</span></button>
+    <button class="bn-btn" id="bn-about" onclick="nav('about')"><div class="bn-ic">ℹ️</div><span class="bn-lb">About</span></button>
+  </div>
+</nav>
+
+<!-- ════ HOME ════ -->
+<div id="page-home" class="page on">
+  <div class="hero">
+    <div class="hero-orb1"></div><div class="hero-orb2"></div>
+    <div class="hero-content">
+      <div class="hero-badge">✨ Gemini 2.5 Flash + Web Crawl Fallback • Free • No Login</div>
+      <h1 class="hero-h1">Your AI Travel<br><span class="grad">Dream Planner</span></h1>
+      <p class="hero-sub">Enter budget &amp; destination — AI finds flights, hotels &amp; builds a full day-by-day itinerary in 30 seconds. PDF download included.</p>
+      <div class="hero-bar">
+        <div class="hb-field"><span>📍</span><input id="h-from" placeholder="From: Mumbai, Delhi…"/></div>
+        <div class="hb-div"></div>
+        <div class="hb-field"><span>🛫</span><input id="h-to" placeholder="To: Goa, Bali, Paris…"/></div>
+        <div class="hb-div"></div>
+        <div class="hb-field" style="max-width:155px"><span>💰</span><input id="h-bgt" type="number" placeholder="Budget ₹" value="50000"/></div>
+        <button class="btn btn-or" onclick="heroSearch()">🔍 Plan Trip</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hs-val grad">50k+</div><div class="hs-lbl">Trips Planned</div></div>
+        <div><div class="hs-val grad">200+</div><div class="hs-lbl">Destinations</div></div>
+        <div><div class="hs-val grad">₹0</div><div class="hs-lbl">Cost to Use</div></div>
+        <div><div class="hs-val grad" id="ai-mode-stat">⚡ Crawl</div><div class="hs-lbl">Current Mode</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec" style="background:rgba(255,255,255,.012)">
+    <div class="wrap" style="text-align:center">
+      <h2 class="sec-hd display" style="margin-bottom:.75rem">Everything to <span class="grad">travel smarter</span></h2>
+      <p style="color:var(--mu);max-width:520px;margin:0 auto 3rem">Gemini 2.5 Flash AI + web crawl fallback + PDF export.</p>
+      <div class="g3">
+        <div class="g-card"><div class="g-icon">✨</div><div style="font-weight:600;margin-bottom:.5rem">AI Itinerary Builder</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">Day-by-day plans for your exact budget, interests &amp; style.</div></div>
+        <div class="g-card"><div class="g-icon">📄</div><div style="font-weight:600;margin-bottom:.5rem">PDF Download</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">Download your complete itinerary as a beautifully formatted PDF.</div></div>
+        <div class="g-card"><div class="g-icon">🕸️</div><div style="font-weight:600;margin-bottom:.5rem">Web Crawl Fallback</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">No API key? App fetches live travel data automatically.</div></div>
+        <div class="g-card"><div class="g-icon">🛡️</div><div style="font-weight:600;margin-bottom:.5rem">Visa &amp; Safety</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">Visa rules, scam warnings, safety tips &amp; emergency contacts.</div></div>
+        <div class="g-card"><div class="g-icon">💎</div><div style="font-weight:600;margin-bottom:.5rem">Hidden Gems</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">Lesser-known spots, local food &amp; photo locations.</div></div>
+        <div class="g-card"><div class="g-icon">💬</div><div style="font-weight:600;margin-bottom:.5rem">AI Chat Assistant</div><div style="color:var(--mu);font-size:.84rem;line-height:1.65">"Honeymoon Bali ₹1 lakh" → instant complete plan.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;flex-wrap:wrap;gap:.875rem">
+        <h2 class="sec-hd display" style="margin-bottom:0">Popular <span class="grad">Picks</span></h2>
+        <button class="btn btn-gl btn-sm" onclick="nav('explore')">All Destinations →</button>
+      </div>
+      <div class="g4" id="home-dests"></div>
+    </div>
+  </div>
+  <div class="sec" style="background:rgba(255,255,255,.012)">
+    <div class="wrap-sm" style="text-align:center">
+      <div style="background:var(--gb);border:1px solid rgba(249,115,22,.2);border-radius:var(--rxl);padding:3rem 1.75rem;box-shadow:var(--glow)">
+        <div class="flt" style="font-size:3.25rem;margin-bottom:1rem">✈️</div>
+        <h2 class="display" style="font-size:2.1rem;margin-bottom:.7rem">Plan your <span class="grad">perfect trip</span></h2>
+        <p style="color:var(--mu);margin-bottom:1.75rem">Free. No signup. Download PDF. Works with or without API key.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center">
+          <button class="btn btn-or" style="font-size:.95rem;padding:.85rem 1.9rem" onclick="nav('planner')">✨ Start Planning Free</button>
+          <button class="btn btn-gl" style="font-size:.95rem;padding:.85rem 1.9rem" onclick="nav('chat')">💬 Chat with AI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PLANNER ════ -->
+<div id="page-planner" class="page">
+  <div class="wrap-sm" style="padding-top:1.5rem">
+    <div id="form-view">
+      <div style="text-align:center;margin-bottom:2.25rem">
+        <h1 class="display" style="font-size:2.6rem;margin-bottom:.7rem">Plan Your <span class="grad">Dream Trip</span></h1>
+        <p style="color:var(--mu)" id="planner-sub">Gemini 2.5 Flash • PDF download • Web crawl fallback</p>
+      </div>
+      <div style="margin-bottom:1.35rem">
+        <div style="display:flex;justify-content:space-between;font-size:.76rem;color:var(--mu);margin-bottom:.4rem"><span id="slc">Step 1 of 4</span><span id="spct">25%</span></div>
+        <div class="prog-track"><div class="prog-fill" id="prog" style="width:25%"></div></div>
+        <div class="step-lbs">
+          <span class="slb on" onclick="goStep(1)">Destination</span>
+          <span class="slb" onclick="goStep(2)">Dates &amp; People</span>
+          <span class="slb" onclick="goStep(3)">Interests</span>
+          <span class="slb" onclick="goStep(4)">Preferences</span>
+        </div>
+      </div>
+      <div class="fc">
+        <!-- Step 1 -->
+        <div class="fstep on" id="s1">
+          <h2 style="font-size:1.4rem;font-weight:600;margin-bottom:1.35rem">🌍 Where are you going?</h2>
+          <div class="frow">
+            <div class="fg"><label class="lbl">From City *</label><input class="inp" id="f-from" placeholder="Mumbai, Delhi…" value="Mumbai"/></div>
+            <div class="fg"><label class="lbl">Destination *</label><input class="inp" id="f-dest" placeholder="Goa, Bali, Paris…"/></div>
+          </div>
+          <div class="fg"><label class="lbl">Trip Type</label>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+              <button class="chip on" id="tt-india" onclick="selTT('india')">🇮🇳 India Domestic</button>
+              <button class="chip" id="tt-intl" onclick="selTT('international')">✈️ International</button>
+            </div>
+          </div>
+          <div class="fg"><label class="lbl">Total Budget: <span id="bdsp" style="color:var(--or);font-weight:700">₹50,000</span></label>
+            <input type="range" class="rng" id="brng" min="5000" max="2000000" step="5000" value="50000" oninput="updB(this.value)"/>
+            <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--mu2);margin-top:.3rem"><span>₹5k</span><span>₹20L</span></div>
+            <div class="chip-row" style="margin-top:.75rem">
+              <button class="chip" onclick="setB(15000)">₹15k</button><button class="chip" onclick="setB(30000)">₹30k</button>
+              <button class="chip" onclick="setB(50000)">₹50k</button><button class="chip" onclick="setB(100000)">₹1L</button>
+              <button class="chip" onclick="setB(200000)">₹2L</button><button class="chip" onclick="setB(500000)">₹5L</button>
+            </div>
+          </div>
+          <div class="fg"><label class="lbl">Quick Destinations</label>
+            <div class="chip-row">
+              <button class="chip" onclick="pD('Goa')">🏖️ Goa</button><button class="chip" onclick="pD('Bali')">🌴 Bali</button>
+              <button class="chip" onclick="pD('Manali')">🏔️ Manali</button><button class="chip" onclick="pD('Thailand')">🐘 Thailand</button>
+              <button class="chip" onclick="pD('Rajasthan')">🏰 Rajasthan</button><button class="chip" onclick="pD('Singapore')">🌃 Singapore</button>
+              <button class="chip" onclick="pD('Kerala')">🌿 Kerala</button><button class="chip" onclick="pD('Dubai')">🏙️ Dubai</button>
+              <button class="chip" onclick="pD('Paris')">🗼 Paris</button><button class="chip" onclick="pD('Leh Ladakh')">⛰️ Ladakh</button>
+            </div>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="fstep" id="s2">
+          <h2 style="font-size:1.4rem;font-weight:600;margin-bottom:1.35rem">📅 When &amp; Who?</h2>
+          <div class="frow">
+            <div class="fg"><label class="lbl">Start Date *</label><input type="date" class="inp" id="f-start"/></div>
+            <div class="fg"><label class="lbl">End Date *</label><input type="date" class="inp" id="f-end"/></div>
+          </div>
+          <div class="dpill" id="dpill"><span style="font-size:1.2rem">📅</span><div><span id="dur-txt" style="font-weight:600"></span><span id="dur-dt" style="color:var(--mu);font-size:.82rem;margin-left:.65rem"></span></div></div>
+          <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:1.35rem">
+            <input type="checkbox" id="flex-d" style="accent-color:var(--or);width:15px;height:15px"/>
+            <label for="flex-d" style="font-size:.84rem;color:var(--mu);cursor:pointer">Flexible dates — AI picks cheapest window ±3 days</label>
+          </div>
+          <div class="frow">
+            <div><label class="lbl">Adults (18+)</label><div class="ctr"><button class="cbtn" onclick="chg('adults',-1)">−</button><span class="cval" id="av">2</span><button class="cbtn" onclick="chg('adults',1)">+</button></div></div>
+            <div><label class="lbl">Children (under 18)</label><div class="ctr"><button class="cbtn" onclick="chg('children',-1)">−</button><span class="cval" id="cv">0</span><button class="cbtn" onclick="chg('children',1)">+</button></div></div>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div class="fstep" id="s3">
+          <h2 style="font-size:1.4rem;font-weight:600;margin-bottom:.45rem">🎯 Your Interests</h2>
+          <p style="color:var(--mu);font-size:.83rem;margin-bottom:1.25rem">AI tailors every recommendation to what you love</p>
+          <div class="ig" id="ig"></div>
+          <div id="sel-ints" style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:1.75rem"></div>
+        </div>
+        <!-- Step 4 -->
+        <div class="fstep" id="s4">
+          <h2 style="font-size:1.4rem;font-weight:600;margin-bottom:1.35rem">⚙️ Preferences</h2>
+          <div class="frow" style="align-items:start">
+            <div>
+              <label class="lbl" style="margin-bottom:.65rem">🏨 Hotel Type</label>
+              <div class="hotel-list">
+                <button class="chip" id="ht-budget" onclick="sP('hotel','budget')">🏠 Budget (₹500–1500/night)</button>
+                <button class="chip on" id="ht-mid_range" onclick="sP('hotel','mid_range')">🏨 Mid-range (₹1500–4000/night)</button>
+                <button class="chip" id="ht-luxury" onclick="sP('hotel','luxury')">💎 Luxury (₹4000+/night)</button>
+                <button class="chip" id="ht-hostel" onclick="sP('hotel','hostel')">🎒 Hostel / Backpacker</button>
+                <button class="chip" id="ht-resort" onclick="sP('hotel','resort')">🌴 Resort / Boutique</button>
+                <button class="chip" id="ht-homestay" onclick="sP('hotel','homestay')">🏡 Homestay / Airbnb</button>
+              </div>
+            </div>
+            <div>
+              <div class="fg"><label class="lbl">🍽️ Food</label><div class="chip-row"><button class="chip on" id="fd-any" onclick="sP('fd','any')">🍴 Any</button><button class="chip" id="fd-vegetarian" onclick="sP('fd','vegetarian')">🌿 Veg</button><button class="chip" id="fd-non_vegetarian" onclick="sP('fd','non_vegetarian')">🍖 Non-Veg</button><button class="chip" id="fd-vegan" onclick="sP('fd','vegan')">🥗 Vegan</button></div></div>
+              <div class="fg"><label class="lbl">🏃 Pace</label><div class="chip-row"><button class="chip" id="pc-slow" onclick="sP('pc','slow')">🐢 Relaxed</button><button class="chip on" id="pc-moderate" onclick="sP('pc','moderate')">🚶 Moderate</button><button class="chip" id="pc-fast" onclick="sP('pc','fast')">⚡ Fast</button></div></div>
+              <div class="fg"><label class="lbl">💪 Activity Level</label><div class="chip-row"><button class="chip" id="al-relaxed" onclick="sP('al','relaxed')">😌 Easy</button><button class="chip on" id="al-moderate" onclick="sP('al','moderate')">🤸 Moderate</button><button class="chip" id="al-adventurous" onclick="sP('al','adventurous')">🏄 Adventurous</button></div></div>
+              <div class="fg"><label class="lbl">✈️ Flight Pref</label><div class="chip-row"><button class="chip on" id="fl-cheapest" onclick="sP('fl','cheapest')">💰 Cheapest</button><button class="chip" id="fl-fastest" onclick="sP('fl','fastest')">⚡ Fastest</button><button class="chip" id="fl-no_preference" onclick="sP('fl','no_preference')">🤝 Any</button></div></div>
+              <div class="fg"><label class="lbl">🛂 Visa Pref</label><div class="chip-row"><button class="chip" id="vi-visa_free" onclick="sP('vi','visa_free')">✅ Visa Free</button><button class="chip" id="vi-visa_on_arrival" onclick="sP('vi','visa_on_arrival')">🏷️ On Arrival</button><button class="chip on" id="vi-any" onclick="sP('vi','any')">🌐 Any</button></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="fnav">
+          <button class="btn btn-gl" id="btn-back" onclick="goStep(cs-1)" style="visibility:hidden">← Back</button>
+          <button class="btn btn-or" id="btn-next" onclick="nextStep()">Next Step →</button>
+        </div>
+      </div>
+    </div>
+    <!-- Result view -->
+    <div id="result-view" style="display:none">
+      <div id="fb-notice"></div>
+      <div class="r-hdr">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:.875rem;align-items:flex-start">
+          <div>
+            <div style="display:flex;align-items:center;gap:.45rem;margin-bottom:.4rem"><span id="r-dot">✅</span><span style="font-size:.82rem;font-weight:500" id="r-credit">Itinerary ready</span></div>
+            <h1 class="display" style="font-size:1.85rem" id="r-title">Trip Plan</h1>
+            <p id="r-meta" style="color:var(--mu);font-size:.82rem;margin-top:.3rem"></p>
+            <p id="r-sum" style="color:var(--mu);font-size:.83rem;margin-top:.45rem;max-width:580px;line-height:1.6"></p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+            <button class="btn btn-gl btn-sm" onclick="cpLink()">🔗 Share</button>
+            <button class="btn btn-or btn-sm" id="pdf-btn" onclick="downloadPDF()">⬇️ Download PDF</button>
+            <button class="btn btn-gl btn-sm" onclick="resetPlan()">🔄 Replan</button>
+          </div>
+        </div>
+      </div>
+      <div class="r-tabs">
+        <button class="rtab on" onclick="rTab('itinerary')">📅 Itinerary</button>
+        <button class="rtab" onclick="rTab('budget')">💰 Budget</button>
+        <button class="rtab" onclick="rTab('flights')">✈️ Flights</button>
+        <button class="rtab" onclick="rTab('hotels')">🏨 Hotels</button>
+        <button class="rtab" onclick="rTab('tips')">💡 Tips</button>
+        <button class="rtab" onclick="rTab('visa')">🛂 Visa</button>
+        <button class="rtab" onclick="rTab('packing')">🎒 Packing</button>
+      </div>
+      <div id="tp-itinerary" class="rpanel on"></div>
+      <div id="tp-budget" class="rpanel"></div>
+      <div id="tp-flights" class="rpanel"></div>
+      <div id="tp-hotels" class="rpanel"></div>
+      <div id="tp-tips" class="rpanel"></div>
+      <div id="tp-visa" class="rpanel"></div>
+      <div id="tp-packing" class="rpanel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ CHAT ════ -->
+<div id="page-chat" class="page">
+  <div class="wrap-sm" style="padding-top:1.5rem">
+    <div style="text-align:center;margin-bottom:1.35rem">
+      <h1 class="display" style="font-size:2.1rem;margin-bottom:.4rem">AI Travel <span class="grad">Assistant</span></h1>
+      <p style="color:var(--mu);font-size:.82rem" id="chat-sub">Gemini 2.5 Flash + Web Crawl Fallback</p>
+    </div>
+    <div class="chat-box" style="margin-bottom:.875rem">
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="ci" placeholder="'Plan 5-day Goa under ₹25k for 2'" onkeydown="ckd(event)"/>
+        <button class="btn btn-or btn-sm" onclick="sendChat()">Send ↗</button>
+      </div>
+    </div>
+    <p style="font-size:.72rem;color:var(--mu2);margin-bottom:.5rem">💡 Quick prompts:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem" id="qchips"></div>
+  </div>
+</div>
+
+<!-- ════ EXPLORE ════ -->
+<div id="page-explore" class="page">
+  <div class="wrap" style="padding-top:1.5rem">
+    <div style="text-align:center;margin-bottom:2rem">
+      <h1 class="display" style="font-size:2.3rem;margin-bottom:.65rem">Explore <span class="grad">Destinations</span></h1>
+      <p style="color:var(--mu)">Curated picks for Indian travellers — click any to plan</p>
+    </div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.75rem" id="frow"></div>
+    <div class="g4" id="exp-grid"></div>
+  </div>
+</div>
+
+<!-- ════ ABOUT ════ -->
+<div id="page-about" class="page">
+  <div class="wrap-sm" style="padding-top:1.5rem">
+    <div style="text-align:center;margin-bottom:3rem;padding:2.5rem 1rem">
+      <div style="width:80px;height:80px;border-radius:1.25rem;background:linear-gradient(135deg,var(--or),var(--or-d));display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 1.1rem;animation:pglow 2.5s ease-in-out infinite">✈️</div>
+      <h1 class="display" style="font-size:2.75rem;margin-bottom:.875rem">About <span class="grad">TravelBuddy AI</span></h1>
+      <p style="color:var(--mu);font-size:1.05rem;max-width:560px;margin:0 auto;line-height:1.75">Gemini 2.5 Flash · PDF export · Web crawl fallback · Completely free · No login.</p>
+    </div>
+
+    <!-- GitHub Deployment Guide -->
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:var(--rxl);padding:2rem;margin-bottom:1.25rem">
+      <h2 class="display" style="font-size:1.5rem;margin-bottom:1rem;color:#4ade80">🚀 Deploy on GitHub Pages (Free)</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem">
+          <div style="font-weight:700;color:#4ade80;margin-bottom:.5rem;font-size:.9rem">Step 1 — Upload to GitHub</div>
+          <p style="font-size:.8rem;color:var(--mu);line-height:1.65">Upload <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem;font-size:.75rem">index.html</code> and <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem;font-size:.75rem">.github/workflows/deploy.yml</code> to a new GitHub repo.</p>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem">
+          <div style="font-weight:700;color:#4ade80;margin-bottom:.5rem;font-size:.9rem">Step 2 — Add GitHub Secret</div>
+          <p style="font-size:.8rem;color:var(--mu);line-height:1.65">Go to <strong>Settings → Secrets → Actions</strong> → Add secret named <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem;font-size:.75rem">GEMINI_API_KEY</code> with your key value.</p>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem">
+          <div style="font-weight:700;color:#4ade80;margin-bottom:.5rem;font-size:.9rem">Step 3 — Enable Pages</div>
+          <p style="font-size:.8rem;color:var(--mu);line-height:1.65">Go to <strong>Settings → Pages</strong> → Source: <strong>GitHub Actions</strong>. Push to main → auto-deploys!</p>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem">
+          <div style="font-weight:700;color:#4ade80;margin-bottom:.5rem;font-size:.9rem">Step 4 — Live!</div>
+          <p style="font-size:.8rem;color:var(--mu);line-height:1.65">Your site: <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem;font-size:.75rem">https://USERNAME.github.io/REPO/</code> — API key auto-injected from secret.</p>
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,.25);border-radius:.75rem;padding:.875rem;font-size:.78rem;color:var(--mu)">🔒 <strong style="color:var(--tx)">Security:</strong> The <code style="font-size:.75rem;background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem">deploy.yml</code> uses <code style="font-size:.75rem;background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem">sed</code> to replace <code style="font-size:.75rem;background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem">REPLACE_ME_WITH_KEY</code> placeholder in <code style="font-size:.75rem;background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.3rem">index.html</code> with the GitHub secret at build time. Key is never stored in your repo.</div>
+    </div>
+
+    <!-- AI Models -->
+    <div style="background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.2);border-radius:var(--rxl);padding:2rem;margin-bottom:1.25rem">
+      <h2 class="display" style="font-size:1.5rem;margin-bottom:1rem;color:#fb923c">🤖 AI Model Chain</h2>
+      <div style="display:grid;gap:.75rem">
+        <div style="display:flex;align-items:center;gap:1rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.875rem 1.1rem">
+          <span style="font-size:1.4rem">1️⃣</span>
+          <div><div style="font-weight:600;font-size:.9rem">gemini-2.5-flash-preview-05-20</div><div style="font-size:.75rem;color:var(--mu)">Primary — Most capable, best reasoning, latest Gemini 2.5</div></div>
+          <span class="tag tag-gn" style="margin-left:auto">Primary</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.875rem 1.1rem">
+          <span style="font-size:1.4rem">2️⃣</span>
+          <div><div style="font-weight:600;font-size:.9rem">gemini-2.5-flash-lite-preview-06-17</div><div style="font-size:.75rem;color:var(--mu)">Fallback 1 — Lighter, faster version of 2.5 Flash</div></div>
+          <span class="tag tag-am" style="margin-left:auto">Fallback 1</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.875rem 1.1rem">
+          <span style="font-size:1.4rem">3️⃣</span>
+          <div><div style="font-weight:600;font-size:.9rem">gemini-1.5-flash</div><div style="font-size:.75ún;color:var(--mu)">Fallback 2 — Stable, proven model</div></div>
+          <span class="tag tag-bl" style="margin-left:auto">Fallback 2</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);border-radius:.75rem;padding:.875rem 1.1rem">
+          <span style="font-size:1.4rem">4️⃣</span>
+          <div><div style="font-weight:600;font-size:.9rem">Web Crawl (Wikipedia + REST APIs)</div><div style="font-size:.75rem;color:var(--mu)">No key needed — live data from public sources</div></div>
+          <span class="tag tag-wh" style="margin-left:auto">No Key</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Creator -->
+    <div class="cr-card" style="margin-bottom:1.25rem">
+      <div class="cr-av">👨‍💻</div>
+      <div style="flex:1">
+        <h2 class="display" style="font-size:2.3rem;font-weight:800;margin-bottom:.2rem">Raman Jha</h2>
+        <p style="color:var(--or);font-weight:600;margin-bottom:1.1rem">Founder &amp; CEO, TravelBuddy AI</p>
+        <p style="color:var(--mu);line-height:1.8;margin-bottom:.875rem">Raman Jha is a visionary entrepreneur and technology leader passionate about making world‑class travel accessible to every Indian. Built TravelBuddy AI from scratch with Gemini AI, web crawl fallback, PDF export and GitHub Actions deployment.</p>
+        <blockquote style="color:var(--mu);font-style:italic;border-left:3px solid var(--or);padding-left:.875rem;margin-bottom:1.1rem;font-size:.9rem;line-height:1.7">"Every Indian deserves to travel the world smartly, safely and affordably."</blockquote>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+          <span class="tag tag-or">🚀 Entrepreneur</span><span class="tag tag-bl">🤖 AI Builder</span>
+          <span class="tag tag-gn">✈️ Travel Tech</span><span class="tag tag-am">💡 Innovator</span><span class="tag tag-wh">🇮🇳 Made in India</span>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:1.5rem 0">
+      <div style="display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-bottom:1rem">
+        <a href="mailto:hello@travelbuddy.ai" class="btn btn-or btn-sm">📧 hello@travelbuddy.ai</a>
+        <a href="https://twitter.com/TravelBuddyAI" target="_blank" class="btn btn-gl btn-sm">🐦 @TravelBuddyAI</a>
+      </div>
+      <p style="color:var(--mu2);font-size:.75rem">© 2025 TravelBuddy AI · Built with ❤️ by Raman Jha · No login required</p>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="lov">
+  <div class="lov-box">
+    <div class="lov-plane">✈️</div>
+    <h3 class="display grad" style="font-size:1.5rem;margin-bottom:.4rem" id="lov-title">Planning…</h3>
+    <p style="color:var(--mu);font-size:.82rem;margin-bottom:1.35rem" id="lov-sub">Working…</p>
+    <div class="lv-step"><div class="lv-dot"></div><span id="ls1">🔍 Analysing destination…</span></div>
+    <div class="lv-step"><div class="lv-dot" style="animation-delay:.25s"></div><span id="ls2">✈️ Finding best flights…</span></div>
+    <div class="lv-step"><div class="lv-dot" style="animation-delay:.5s"></div><span id="ls3">🏨 Comparing hotels…</span></div>
+    <div class="lv-step"><div class="lv-dot" style="animation-delay:.75s"></div><span id="ls4">🗺️ Building daily plans…</span></div>
+    <div class="lv-step"><div class="lv-dot" style="animation-delay:1s"></div><span id="ls5">💎 Discovering hidden gems…</span></div>
+  </div>
+</div>
+<div id="toast"><span id="t-ic">✅</span><span id="t-msg"></span></div>
+
 <script>
 // ═══════════════════════════════════════════════════════
 // TravelBuddy AI — Engine  |  Built by Raman Jha
