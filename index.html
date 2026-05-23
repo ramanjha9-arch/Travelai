@@ -6,463 +6,782 @@
 <meta name="theme-color" content="#f97316"/>
 <title>TravelBuddy AI — Smart Travel Planner by Raman Jha</title>
 <meta name="description" content="AI-powered travel planner. Gemini 2.5 Flash. Free, no login."/>
-
 <!-- ═══ GITHUB ACTIONS injects key here via sed ═══ -->
 <meta name="gemini-api-key" content="REPLACE_ME_WITH_KEY"/>
-
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-
-<!-- jsPDF for PDF export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-/* KEEPING YOUR ORIGINAL CSS EXACTLY AS PROVIDED */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#0a0f1e;color:#f1f5f9;min-height:100vh;overflow-x:hidden}
-button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
-input,select,textarea{font-family:inherit;color:inherit}
-a{color:inherit;text-decoration:none}
-:root{
-  --or:#f97316;--or-d:#ea580c;--bl:#0ea5e9;
-  --dk:#0a0f1e;--dk2:#0f172a;--dk3:#1e293b;
-  --tx:#f1f5f9;--mu:rgba(241,245,249,.55);--mu2:rgba(241,245,249,.3);
-  --gb:rgba(255,255,255,.04);--gbr:rgba(255,255,255,.09);
-  --glow:0 0 40px rgba(249,115,22,.18);
-  --r:14px;--rl:22px;--rxl:30px;
+body{
+font-family:'Plus Jakarta Sans',sans-serif;
+background:#0a0f1e;
+color:#f1f5f9;
+min-height:100vh;
+overflow-x:hidden
 }
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--dk2)}
-::-webkit-scrollbar-thumb{background:var(--or);border-radius:3px}
-.glass{background:var(--gb);backdrop-filter:blur(20px);border:1px solid var(--gbr)}
-.display{font-family:'Playfair Display',serif}
-.grad{background:linear-gradient(135deg,#f97316,#facc15,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.page{display:none;padding-top:1.5rem;padding-bottom:5rem;min-height:calc(100vh - 60px)}
-.page.on{display:block}
+:root{
+--or:#f97316;
+--or-d:#ea580c;
+--bl:#0ea5e9;
+--dk:#0a0f1e;
+--dk2:#0f172a;
+--dk3:#1e293b;
+--tx:#f1f5f9;
+--mu:rgba(241,245,249,.65);
+--gb:rgba(255,255,255,.04);
+--gbr:rgba(255,255,255,.09);
+--r:14px;
+}
+button{
+cursor:pointer;
+border:none;
+background:none;
+color:inherit;
+font-family:inherit
+}
+input,textarea{
+font-family:inherit;
+outline:none
+}
+a{
+text-decoration:none;
+color:inherit
+}
+.display{
+font-family:'Playfair Display',serif
+}
+.grad{
+background:linear-gradient(135deg,#f97316,#facc15,#fb923c);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+background-clip:text
+}
+.glass{
+background:var(--gb);
+backdrop-filter:blur(20px);
+border:1px solid var(--gbr)
+}
+.wrap{
+width:min(1200px,92%);
+margin:auto
+}
+.wrap-sm{
+width:min(900px,92%);
+margin:auto
+}
+.page{
+display:none;
+padding:2rem 0 5rem
+}
+.page.on{
+display:block
+}
+.btn{
+padding:.9rem 1.2rem;
+border-radius:14px;
+font-weight:700;
+transition:.25s
+}
+.btn-or{
+background:#f97316;
+color:#fff
+}
+.btn-or:hover{
+background:#ea580c
+}
+.btn-gl{
+border:1px solid rgba(255,255,255,.12)
+}
+.btn-sm{
+padding:.7rem 1rem;
+font-size:.92rem
+}
+#topbar{
+position:sticky;
+top:0;
+z-index:99;
+background:rgba(10,15,30,.88);
+backdrop-filter:blur(20px);
+border-bottom:1px solid rgba(255,255,255,.05)
+}
+.topbar-inner{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:1rem 0
+}
+.logo{
+display:flex;
+align-items:center;
+gap:.75rem;
+font-weight:800
+}
+.logo-icon{
+font-size:1.5rem
+}
+.topbar-nav{
+display:flex;
+gap:1.4rem
+}
+.tnav{
+opacity:.75
+}
+.tnav.on,
+.tnav:hover{
+opacity:1;
+color:#f97316
+}
+.hero{
+padding:6rem 0 5rem
+}
+.hero-content{
+width:min(950px,92%);
+margin:auto;
+text-align:center
+}
+.hero-h1{
+font-size:4rem;
+line-height:1.05
+}
+.hero-sub{
+margin-top:1.2rem;
+font-size:1.15rem;
+color:var(--mu)
+}
+.hero-badge{
+display:inline-flex;
+padding:.65rem 1rem;
+border-radius:999px;
+background:rgba(249,115,22,.12);
+margin-bottom:1.5rem;
+font-size:.9rem
+}
+.hero-bar{
+margin-top:2rem;
+display:grid;
+grid-template-columns:1fr 1fr 170px auto;
+gap:1rem;
+padding:1rem;
+border-radius:22px;
+background:rgba(255,255,255,.04);
+border:1px solid rgba(255,255,255,.08)
+}
+.hb-field input{
+width:100%;
+padding:.95rem;
+border:none;
+background:#111827;
+border-radius:14px;
+color:#fff
+}
+.fc{
+margin-top:2rem
+}
+.frow{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:1rem
+}
+.fg{
+display:flex;
+flex-direction:column;
+gap:.6rem
+}
+.lbl{
+font-size:.92rem;
+color:var(--mu)
+}
+.inp{
+padding:1rem;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.08);
+background:#111827;
+color:#fff
+}
+#result-view{
+padding:1.5rem;
+border-radius:22px;
+background:rgba(255,255,255,.03);
+border:1px solid rgba(255,255,255,.07)
+}
+#tp-itinerary{
+margin-top:1.5rem;
+line-height:1.8
+}
+.chat-box{
+margin-top:2rem;
+padding:1rem;
+border-radius:22px;
+background:rgba(255,255,255,.03);
+border:1px solid rgba(255,255,255,.07)
+}
+.chat-msgs{
+height:450px;
+overflow:auto;
+padding:1rem
+}
+.chat-inp-row{
+display:flex;
+gap:1rem;
+margin-top:1rem
+}
+.chat-inp{
+flex:1;
+padding:1rem;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.08);
+background:#111827;
+color:#fff
+}
+.cm{
+margin-bottom:1rem;
+display:flex
+}
+.cm.ai{
+justify-content:flex-start
+}
+.cm.usr{
+justify-content:flex-end
+}
+.cm-bub{
+padding:1rem;
+border-radius:16px;
+max-width:80%;
+background:#1e293b;
+line-height:1.7
+}
+.cm.usr .cm-bub{
+background:#f97316
+}
+.g4{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:1.2rem;
+margin-top:2rem
+}
+.exp-card{
+overflow:hidden;
+border-radius:18px
+}
+.exp-img{
+width:100%;
+height:220px;
+object-fit:cover
+}
+.exp-body{
+padding:1rem
+}
+.exp-body p{
+margin-top:.5rem;
+color:var(--mu)
+}
+#toast{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#111827;
+padding:1rem 1.2rem;
+border-radius:14px;
+opacity:0;
+pointer-events:none;
+transition:.3s;
+z-index:9999
+}
+#toast.on{
+opacity:1
+}
+#lov{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.65);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999
+}
+.lov-box{
+padding:2rem;
+border-radius:20px;
+background:#111827;
+text-align:center
+}
+.lov-plane{
+font-size:3rem;
+margin-bottom:1rem
+}
+#api-banner{
+padding:1rem;
+background:#111827;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:1rem;
+flex-wrap:wrap;
+border-bottom:1px solid rgba(255,255,255,.08)
+}
+.key-field{
+padding:.9rem 1rem;
+border-radius:12px;
+border:none;
+background:#1e293b;
+color:#fff;
+min-width:280px
+}
+@media(max-width:768px){
+.hero-h1{
+font-size:2.7rem
+}
+.hero-bar{
+grid-template-columns:1fr
+}
+.frow{
+grid-template-columns:1fr
+}
+.topbar-nav{
+display:none
+}
+}
 </style>
 </head>
-
 <body>
-
-<!-- ════ API KEY BANNER ════ -->
-<div id="api-banner" class="mode-none">
-  <div class="banner-info">
-    <div class="banner-dot dot-none" id="bdot"></div>
-    <div>
-      <div class="banner-label" id="blabel">🔑 Enter Gemini API Key to activate full AI</div>
-      <div class="banner-sub" id="bsub">No key? Web Crawl Fallback activates automatically — still works!</div>
-    </div>
-  </div>
-
-  <div class="key-field-wrap">
-    <input class="key-field" id="key-inp" type="password"
-      placeholder="Paste key here — AIzaSy… (get free key →)"
-      autocomplete="off" spellcheck="false"
-      oninput="onKeyType()" onkeydown="if(event.key==='Enter')saveKey()"/>
-    <button class="vis-btn" id="vis-btn" onclick="toggleVis()" title="Show/hide">👁</button>
-  </div>
-
-  <div class="banner-btns">
-    <button class="btn btn-or btn-sm" id="save-btn" onclick="saveKey()">✅ Activate AI</button>
-    <button class="btn btn-gl btn-sm" id="clear-btn" style="display:none" onclick="clearKey()">🗑 Clear</button>
-    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="get-key-a">Get free key →</a>
-  </div>
+<div id="api-banner">
+<div>
+<div id="blabel">🔑 Enter Gemini API Key</div>
+<div id="bsub" style="font-size:.9rem;color:var(--mu)">
+Web crawl fallback available
 </div>
-
-<!-- ════ TOPBAR ════ -->
+</div>
+<div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
+<input id="key-inp" class="key-field" type="password" placeholder="Paste Gemini API Key"/>
+<button class="btn btn-or btn-sm" onclick="saveKey()">Activate AI</button>
+<button class="btn btn-gl btn-sm" id="clear-btn" style="display:none" onclick="clearKey()">Clear</button>
+<a href="https://aistudio.google.com/app/apikey" target="_blank">
+Get Key →
+</a>
+</div>
+</div>
 <nav id="topbar">
-  <div class="wrap topbar-inner">
-    <div class="logo" onclick="nav('home')">
-      <div class="logo-icon">✈️</div>
-      <span class="logo-txt grad">TravelBuddy AI</span>
-    </div>
-
-    <div class="topbar-nav">
-      <a class="tnav on" onclick="nav('home')" href="#">Home</a>
-      <a class="tnav" onclick="nav('planner')" href="#">Plan Trip</a>
-      <a class="tnav" onclick="nav('chat')" href="#">AI Chat</a>
-      <a class="tnav" onclick="nav('explore')" href="#">Explore</a>
-      <a class="tnav" onclick="nav('about')" href="#">About</a>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:.75rem">
-      <button class="btn btn-or btn-sm" onclick="nav('planner')">✨ Plan Free</button>
-      <button class="hbg" id="hbg" onclick="toggleMob()">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
+<div class="wrap topbar-inner">
+<div class="logo" onclick="nav('home')">
+<div class="logo-icon">✈️</div>
+<div class="grad">TravelBuddy AI</div>
+</div>
+<div class="topbar-nav">
+<a class="tnav on" onclick="nav('home')">Home</a>
+<a class="tnav" onclick="nav('planner')">Plan Trip</a>
+<a class="tnav" onclick="nav('chat')">AI Chat</a>
+<a class="tnav" onclick="nav('explore')">Explore</a>
+<a class="tnav" onclick="nav('about')">About</a>
+</div>
+<button class="btn btn-or btn-sm" onclick="nav('planner')">
+✨ Plan Free
+</button>
+</div>
 </nav>
-
-<!-- ════ HOME PAGE ════ -->
 <div id="page-home" class="page on">
-  <div class="hero">
-    <div class="hero-content">
-      <div class="hero-badge">
-        ✨ Gemini 2.5 Flash + Web Crawl Fallback • Free • No Login
-      </div>
-
-      <h1 class="hero-h1">
-        Your AI Travel<br>
-        <span class="grad">Dream Planner</span>
-      </h1>
-
-      <p class="hero-sub">
-        Enter budget & destination — AI finds flights, hotels &
-        builds a full day-by-day itinerary in 30 seconds.
-      </p>
-
-      <div class="hero-bar">
-        <div class="hb-field">
-          <span>📍</span>
-          <input id="h-from" placeholder="From: Mumbai, Delhi…"/>
-        </div>
-
-        <div class="hb-div"></div>
-
-        <div class="hb-field">
-          <span>🛫</span>
-          <input id="h-to" placeholder="To: Goa, Bali, Paris…"/>
-        </div>
-
-        <div class="hb-div"></div>
-
-        <div class="hb-field" style="max-width:155px">
-          <span>💰</span>
-          <input id="h-bgt" type="number" placeholder="Budget ₹" value="50000"/>
-        </div>
-
-        <button class="btn btn-or" onclick="heroSearch()">🔍 Plan Trip</button>
-      </div>
-    </div>
-  </div>
+<div class="hero">
+<div class="hero-content">
+<div class="hero-badge">
+✨ Gemini 2.5 Flash + AI Travel Intelligence
 </div>
-
-<!-- ════ PLANNER PAGE ════ -->
+<h1 class="hero-h1">
+Your AI Travel<br>
+<span class="grad">Dream Planner</span>
+</h1>
+<p class="hero-sub">
+Plan smarter trips with AI-generated itineraries,
+budget planning, hotels, hidden gems and travel insights.
+</p>
+<div class="hero-bar">
+<div class="hb-field">
+<input id="h-from" placeholder="From City"/>
+</div>
+<div class="hb-field">
+<input id="h-to" placeholder="Destination"/>
+</div>
+<div class="hb-field">
+<input id="h-bgt" type="number" placeholder="Budget ₹"/>
+</div>
+<button class="btn btn-or" onclick="heroSearch()">
+🔍 Plan Trip
+</button>
+</div>
+</div>
+</div>
+</div>
 <div id="page-planner" class="page">
-  <div class="wrap-sm">
-    <h1 class="display" style="font-size:2.6rem;margin-bottom:1rem">
-      Plan Your <span class="grad">Dream Trip</span>
-    </h1>
-
-    <div class="fc">
-      <div class="fstep on">
-        <div class="frow">
-          <div class="fg">
-            <label class="lbl">From City</label>
-            <input class="inp" id="f-from" value="Mumbai"/>
-          </div>
-
-          <div class="fg">
-            <label class="lbl">Destination</label>
-            <input class="inp" id="f-dest"/>
-          </div>
-        </div>
-
-        <button class="btn btn-or" onclick="generateTrip()">
-          ✨ Generate Trip
-        </button>
-      </div>
-    </div>
-
-    <div id="result-view" style="display:none;margin-top:2rem">
-      <div class="r-hdr">
-        <h2 class="display" id="r-title">Trip Plan</h2>
-        <p id="r-meta"></p>
-        <p id="r-sum"></p>
-      </div>
-
-      <div id="tp-itinerary"></div>
-    </div>
-  </div>
+<div class="wrap-sm">
+<h1 class="display" style="font-size:2.7rem">
+AI Travel <span class="grad">Planner</span>
+</h1>
+<div class="fc">
+<div class="frow">
+<div class="fg">
+<label class="lbl">From</label>
+<input id="f-from" class="inp" value="Mumbai"/>
 </div>
-
-<!-- ════ CHAT PAGE ════ -->
+<div class="fg">
+<label class="lbl">Destination</label>
+<input id="f-dest" class="inp" placeholder="Goa"/>
+</div>
+</div>
+<div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap">
+<button class="btn btn-or" onclick="generateTrip()">
+✨ Generate AI Trip
+</button>
+<button class="btn btn-gl" onclick="downloadPDF()">
+📄 Export PDF
+</button>
+</div>
+</div>
+<div id="result-view" style="display:none;margin-top:2rem">
+<h2 class="display" id="r-title"></h2>
+<p id="r-meta" style="margin-top:.4rem;color:var(--mu)"></p>
+<div id="tp-itinerary"></div>
+</div>
+</div>
+</div>
 <div id="page-chat" class="page">
-  <div class="wrap-sm">
-    <h1 class="display">
-      AI Travel <span class="grad">Assistant</span>
-    </h1>
-
-    <div class="chat-box">
-      <div class="chat-msgs" id="chat-msgs"></div>
-
-      <div class="chat-inp-row">
-        <input class="chat-inp" id="ci"
-          placeholder="'Plan 5-day Goa under ₹25k for 2'"
-          onkeydown="ckd(event)"/>
-
-        <button class="btn btn-or btn-sm" onclick="sendChat()">
-          Send ↗
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="wrap-sm">
+<h1 class="display">
+AI Travel <span class="grad">Assistant</span>
+</h1>
+<div class="chat-box">
+<div class="chat-msgs" id="chat-msgs"></div>
+<div class="chat-inp-row">
+<button class="btn btn-or btn-sm" onclick="sendChat()">
+Send ↗
+</button>
 </div>
-
-<!-- ════ EXPLORE PAGE ════ -->
+</div>
+</div>
+</div>
 <div id="page-explore" class="page">
-  <div class="wrap">
-    <h1 class="display">
-      Explore <span class="grad">Destinations</span>
-    </h1>
-
-    <div class="g4" id="exp-grid"></div>
-  </div>
+<div class="wrap">
+<h1 class="display">
+Explore <span class="grad">Destinations</span>
+</h1>
+<div class="g4" id="exp-grid"></div>
 </div>
-
-<!-- ════ ABOUT PAGE ════ -->
+</div>
 <div id="page-about" class="page">
-  <div class="wrap-sm">
-    <h1 class="display">
-      About <span class="grad">TravelBuddy AI</span>
-    </h1>
-
-    <p style="margin-top:1rem;color:var(--mu)">
-      Gemini 2.5 Flash · PDF export · Web crawl fallback · Free.
-    </p>
-  </div>
+<div class="wrap-sm">
+<h1 class="display">
+About <span class="grad">TravelBuddy AI</span>
+</h1>
+<p style="margin-top:1rem;color:var(--mu);line-height:1.8">
+TravelBuddy AI is a modern AI-powered travel planning platform
+using Gemini AI, PDF exports, web fallback intelligence,
+smart itinerary generation and responsive mobile-first architecture.
+</p>
 </div>
-
-<!-- ════ LOADING ════ -->
+</div>
 <div id="lov">
-  <div class="lov-box">
-    <div class="lov-plane">✈️</div>
-    <h3 class="display grad">Planning…</h3>
-    <p>Generating itinerary...</p>
-  </div>
+<div class="lov-box">
+<div class="lov-plane">✈️</div>
+<h3 class="display grad">Planning Your Trip...</h3>
+<p style="margin-top:.6rem">Generating itinerary with AI</p>
 </div>
-
-<!-- ════ TOAST ════ -->
+</div>
 <div id="toast"></div>
-
-<!-- ════ MAIN SCRIPT ════ -->
 <script>
 /* =========================================
-   API KEY HANDLING
+API KEY HANDLING
 ========================================= */
-
-const metaKey = document.querySelector('meta[name="gemini-api-key"]')?.content || "";
-let GEMINI_API_KEY = localStorage.getItem("gemini_api_key") || "";
-
-if (!GEMINI_API_KEY && metaKey !== "REPLACE_ME_WITH_KEY") {
-  GEMINI_API_KEY = metaKey;
+const metaKey =
+document.querySelector('meta[name="gemini-api-key"]')?.content || "";
+let GEMINI_API_KEY =
+localStorage.getItem("gemini_api_key") || "";
+if(!GEMINI_API_KEY && metaKey !== "REPLACE_ME_WITH_KEY"){
+GEMINI_API_KEY = metaKey;
 }
-
-function onKeyType() {
-  const inp = document.getElementById("key-inp");
-  if(inp.value.trim()) {
-    inp.classList.add("set");
-  } else {
-    inp.classList.remove("set");
-  }
+function saveKey(){
+const val =
+document.getElementById("key-inp").value.trim();
+if(!val){
+toast("Please enter API key");
+return;
 }
-
-function saveKey() {
-  const val = document.getElementById("key-inp").value.trim();
-
-  if(!val){
-    toast("Please enter API key");
-    return;
-  }
-
-  GEMINI_API_KEY = val;
-  localStorage.setItem("gemini_api_key", val);
-
-  document.getElementById("clear-btn").style.display = "inline-flex";
-
-  toast("✅ API Key saved");
+GEMINI_API_KEY = val;
+localStorage.setItem("gemini_api_key", val);
+document.getElementById("clear-btn").style.display =
+"inline-flex";
+document.getElementById("blabel").innerHTML =
+"✅ Gemini AI Activated";
+document.getElementById("bsub").innerHTML =
+"Full AI mode enabled";
+toast("✅ API key saved");
 }
-
-function clearKey() {
-  localStorage.removeItem("gemini_api_key");
-  GEMINI_API_KEY = "";
-  document.getElementById("key-inp").value = "";
-  toast("API key cleared");
+function clearKey(){
+localStorage.removeItem("gemini_api_key");
+GEMINI_API_KEY = "";
+document.getElementById("key-inp").value = "";
+document.getElementById("blabel").innerHTML =
+"⚡ Web Fallback Mode";
+document.getElementById("bsub").innerHTML =
+"Works without API key";
+document.getElementById("clear-btn").style.display =
+"none";
+toast("API key cleared");
 }
-
-function toggleVis() {
-  const inp = document.getElementById("key-inp");
-  inp.type = inp.type === "password" ? "text" : "password";
-}
-
 /* =========================================
-   NAVIGATION
+NAVIGATION
 ========================================= */
-
 function nav(page){
-  document.querySelectorAll(".page").forEach(p=>{
-    p.classList.remove("on");
-  });
-
-  const target = document.getElementById("page-" + page);
-
-  if(target){
-    target.classList.add("on");
-  }
-
-  document.querySelectorAll(".tnav").forEach(el=>{
-    el.classList.remove("on");
-  });
+document.querySelectorAll(".page").forEach(p=>{
+p.classList.remove("on");
+});
+document.getElementById("page-" + page)
+.classList.add("on");
+document.querySelectorAll(".tnav")
+.forEach(el=>el.classList.remove("on"));
+event?.target?.classList?.add("on");
 }
-
-function toggleMob(){
-  document.getElementById("mob-menu")?.classList.toggle("on");
-}
-
-function closeMob(){
-  document.getElementById("mob-menu")?.classList.remove("on");
-}
-
 /* =========================================
-   HERO SEARCH
+LOADING
 ========================================= */
-
-function heroSearch(){
-  const from = document.getElementById("h-from").value;
-  const to = document.getElementById("h-to").value;
-  const budget = document.getElementById("h-bgt").value;
-
-  document.getElementById("f-from").value = from;
-  document.getElementById("f-dest").value = to;
-
-  nav("planner");
-
-  toast(`Planning ${to} trip under ₹${budget}`);
+function showLoading(show){
+document.getElementById("lov").style.display =
+show ? "flex" : "none";
 }
-
 /* =========================================
-   SIMPLE ITINERARY GENERATOR
+TOAST
 ========================================= */
-
-function generateTrip(){
-
-  const from = document.getElementById("f-from").value || "Mumbai";
-  const dest = document.getElementById("f-dest").value || "Goa";
-
-  document.getElementById("result-view").style.display = "block";
-
-  document.getElementById("r-title").innerText =
-    `${dest} Trip Itinerary`;
-
-  document.getElementById("r-meta").innerText =
-    `${from} → ${dest}`;
-
-  document.getElementById("r-sum").innerText =
-    `AI generated sample itinerary for ${dest}.`;
-
-  document.getElementById("tp-itinerary").innerHTML = `
-    <div class="act-card">
-      <h3>Day 1</h3>
-      <p>Arrival and local sightseeing</p>
-    </div>
-
-    <div class="act-card">
-      <h3>Day 2</h3>
-      <p>Explore beaches and food places</p>
-    </div>
-
-    <div class="act-card">
-      <h3>Day 3</h3>
-      <p>Adventure activities and shopping</p>
-    </div>
-  `;
-
-  toast("✨ Itinerary generated");
-}
-
-/* =========================================
-   CHAT
-========================================= */
-
-function sendChat(){
-
-  const inp = document.getElementById("ci");
-  const val = inp.value.trim();
-
-  if(!val) return;
-
-  const box = document.getElementById("chat-msgs");
-
-  box.innerHTML += `
-    <div class="cm usr">
-      <div class="cm-bub">${val}</div>
-    </div>
-  `;
-
-  setTimeout(()=>{
-    box.innerHTML += `
-      <div class="cm ai">
-        <div class="cm-bub">
-          TravelBuddy AI response for:
-          <br><br>
-          "${val}"
-        </div>
-      </div>
-    `;
-
-    box.scrollTop = box.scrollHeight;
-  },600);
-
-  inp.value = "";
-}
-
-function ckd(e){
-  if(e.key === "Enter"){
-    sendChat();
-  }
-}
-
-/* =========================================
-   TOAST
-========================================= */
-
 function toast(msg){
-
-  const t = document.getElementById("toast");
-
-  t.innerHTML = msg;
-  t.classList.add("on");
-
-  setTimeout(()=>{
-    t.classList.remove("on");
-  },2500);
+const t = document.getElementById("toast");
+t.innerHTML = msg;
+t.classList.add("on");
+setTimeout(()=>{
+t.classList.remove("on");
+},2500);
 }
-
 /* =========================================
-   PDF DOWNLOAD
+MARKDOWN TO HTML
 ========================================= */
-
+function markdownToHtml(text){
+return text
+.replace(/^### (.*$)/gim,'<h3>$1</h3>')
+.replace(/^## (.*$)/gim,'<h2>$1</h2>')
+.replace(/^# (.*$)/gim,'<h1>$1</h1>')
+.replace(/^\- (.*$)/gim,'<li>$1</li>')
+.replace(/\n/g,'<br>');
+}
+/* =========================================
+FALLBACK AI
+========================================= */
+function fakeFallback(){
+return `
+# AI Travel Plan
+## Day 1
+- Arrival
+- Explore nearby places
+- Local dinner recommendation
+## Day 2
+- Main attractions
+- Food exploration
+- Hidden gems
+## Budget Tips
+- Use local transport
+- Prebook tickets
+- Avoid peak timing
+`;
+}
+/* =========================================
+REAL GEMINI CALL
+========================================= */
+async function callGemini(prompt){
+if(!GEMINI_API_KEY){
+return fakeFallback(prompt);
+}
+try{
+const res = await fetch(
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+contents:[
+{
+parts:[
+{
+text:prompt
+}
+]
+}
+]
+})
+}
+);
+const data = await res.json();
+return data?.candidates?.[0]?.content?.parts?.[0]?.text
+|| fakeFallback(prompt);
+}catch(err){
+console.error(err);
+return fakeFallback(prompt);
+}
+}
+/* =========================================
+HERO SEARCH
+========================================= */
+function heroSearch(){
+document.getElementById("f-from").value =
+document.getElementById("h-from").value || "Mumbai";
+document.getElementById("f-dest").value =
+document.getElementById("h-to").value || "Goa";
+nav("planner");
+}
+/* =========================================
+GENERATE TRIP
+========================================= */
+async function generateTrip(){
+const from =
+document.getElementById("f-from").value || "Mumbai";
+const dest =
+document.getElementById("f-dest").value || "Goa";
+showLoading(true);
+const prompt = `
+Create a premium travel itinerary.
+From: ${from}
+Destination: ${dest}
+Include:
+- Day wise itinerary
+- Food recommendations
+- Hotel area suggestions
+- Approx budget
+- Transport tips
+- Hidden gems
+`;
+const aiText = await callGemini(prompt);
+document.getElementById("result-view").style.display =
+"block";
+document.getElementById("r-title").innerText =
+`${dest} AI Itinerary`;
+document.getElementById("r-meta").innerText =
+`${from} → ${dest}`;
+document.getElementById("tp-itinerary").innerHTML =
+markdownToHtml(aiText);
+showLoading(false);
+toast("✨ AI itinerary generated");
+}
+/* =========================================
+AI CHAT
+========================================= */
+async function sendChat(){
+const inp =
+document.getElementById("ci");
+const val = inp.value.trim();
+if(!val) return;
+const box =
+document.getElementById("chat-msgs");
+box.innerHTML += `
+<div class="cm usr">
+<div class="cm-bub">${val}</div>
+</div>
+`;
+inp.value = "";
+box.scrollTop = box.scrollHeight;
+const aiReply =
+await callGemini(val);
+box.innerHTML += `
+<div class="cm ai">
+<div class="cm-bub">
+${markdownToHtml(aiReply)}
+</div>
+</div>
+`;
+box.scrollTop = box.scrollHeight;
+}
+function ckd(e){
+if(e.key === "Enter"){
+sendChat();
+}
+}
+/* =========================================
+EXPLORE DESTINATIONS
+========================================= */
+const destinations = [
+{
+name:"Goa",
+img:"https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200",
+desc:"Beaches, nightlife & vibrant culture"
+},
+{
+name:"Bali",
+img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1200",
+desc:"Luxury villas, waterfalls & temples"
+},
+{
+name:"Paris",
+img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200",
+desc:"Romantic city with iconic landmarks"
+},
+{
+name:"Dubai",
+img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1200",
+desc:"Luxury shopping & futuristic skyline"
+}
+];
+function loadExplore(){
+const grid =
+document.getElementById("exp-grid");
+grid.innerHTML =
+destinations.map(d=>`
+<div class="exp-card glass">
+<img src="${d.img}" class="exp-img"/>
+<div class="exp-body">
+<h3>${d.name}</h3>
+<p>${d.desc}</p>
+</div>
+</div>
+`).join("");
+}
+/* =========================================
+PDF EXPORT
+========================================= */
 async function downloadPDF(){
-
-  if(!window.jspdf){
-    toast("PDF library not loaded");
-    return;
-  }
-
-  const { jsPDF } = window.jspdf;
-
-  const doc = new jsPDF();
-
-  doc.text("TravelBuddy AI Itinerary", 20, 20);
-
-  doc.save("travelbuddy-itinerary.pdf");
+if(!window.jspdf){
+toast("PDF library missing");
+return;
 }
-
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+const title =
+document.getElementById("r-title").innerText;
+const content =
+document.getElementById("tp-itinerary").innerText;
+doc.setFontSize(22);
+doc.text(title,20,20);
+doc.setFontSize(12);
+const lines =
+doc.splitTextToSize(content,170);
+doc.text(lines,20,40);
+doc.save("travelbuddy-ai-itinerary.pdf");
+toast("📄 PDF exported");
+}
 /* =========================================
-   INIT
+INIT
 ========================================= */
-
 document.addEventListener("DOMContentLoaded", ()=>{
-
-  if(GEMINI_API_KEY){
-    document.getElementById("clear-btn").style.display = "inline-flex";
-  }
-
-  toast("✈️ TravelBuddy AI Loaded");
+if(GEMINI_API_KEY){
+document.getElementById("blabel").innerHTML =
+"✅ Gemini AI Activated";
+document.getElementById("bsub").innerHTML =
+"Full AI mode enabled";
+document.getElementById("clear-btn").style.display =
+"inline-flex";
+}else{
+document.getElementById("blabel").innerHTML =
+"⚡ Web Fallback Mode";
+document.getElementById("bsub").innerHTML =
+"Works even without API key";
+}
+loadExplore();
+toast("✈️ TravelBuddy AI Ready");
 });
 </script>
-
 </body>
-</html>
+</htm
