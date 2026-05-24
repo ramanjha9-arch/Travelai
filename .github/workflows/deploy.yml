@@ -1,3 +1,4 @@
+cat > /home/claude/travelbuddy-deploy/.github/workflows/deploy.yml << 'EOF'
 name: Deploy TravelBuddy AI to GitHub Pages
 
 on:
@@ -20,16 +21,15 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Inject Gemini API Key from GitHub Secret
         run: |
-          echo "🔑 Injecting Gemini API key into index.html..."
-          sed -i "s|YOUR_GEMINI_API_KEY_HERE|${{ secrets.GEMINI_API_KEY }}|g" index.html
-          echo "✅ Key injected successfully"
+          echo "🔑 Injecting Gemini API key..."
+          sed -i 's|content="REPLACE_ME_WITH_KEY"|content="${{ secrets.GEMINI_API_KEY }}"|g' index.html
+          echo "✅ Key injected"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
