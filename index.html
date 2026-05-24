@@ -554,27 +554,7 @@ a{color:inherit;text-decoration:none}
       <h1 class="display" style="font-size:2.5rem;margin-bottom:.75rem">About <span class="grad">TravelBuddy AI</span></h1>
       <p style="color:var(--mu);max-width:520px;margin:0 auto;line-height:1.75">Gemini 2.5 Flash Preview AI · PDF export · WhatsApp sharing · Web crawl fallback · Free · No login</p>
     </div>
-    <!-- GitHub Deploy Guide -->
-    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:var(--rxl);padding:2rem;margin-bottom:1.25rem">
-      <h2 class="display" style="font-size:1.5rem;margin-bottom:1rem;color:#4ade80">🚀 GitHub Pages Deployment</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem"><div style="font-weight:700;color:#4ade80;font-size:.875rem;margin-bottom:.4rem">1. Upload files</div><p style="font-size:.78rem;color:var(--mu);line-height:1.6">Upload <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.25rem">index.html</code> + <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.25rem">.github/workflows/deploy.yml</code> to GitHub repo.</p></div>
-        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem"><div style="font-weight:700;color:#4ade80;font-size:.875rem;margin-bottom:.4rem">2. Add Secret</div><p style="font-size:.78rem;color:var(--mu);line-height:1.6"><strong>Settings → Secrets → Actions → New secret</strong><br/>Name: <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.25rem">GEMINI_API_KEY</code><br/>Value: your AIzaSy… key</p></div>
-        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem"><div style="font-weight:700;color:#4ade80;font-size:.875rem;margin-bottom:.4rem">3. Enable Pages</div><p style="font-size:.78rem;color:var(--mu);line-height:1.6"><strong>Settings → Pages → Source: GitHub Actions</strong><br/>Push to main → auto deploys!</p></div>
-        <div style="background:rgba(0,0,0,.2);border-radius:var(--r);padding:1rem"><div style="font-weight:700;color:#4ade80;font-size:.875rem;margin-bottom:.4rem">4. You're live!</div><p style="font-size:.78rem;color:var(--mu);line-height:1.6">URL: <code style="background:rgba(0,0,0,.3);padding:.1rem .3rem;border-radius:.25rem">https://USERNAME.github.io/REPO/</code><br/>Key injected securely at build time.</p></div>
-      </div>
-      <div style="background:rgba(0,0,0,.25);border-radius:.75rem;padding:.875rem;font-size:.78rem;color:var(--mu)">🔒 <strong style="color:var(--tx)">Security:</strong> deploy.yml uses <code>sed</code> to replace <code>REPLACE_ME_WITH_KEY</code> in index.html with your GitHub secret. Key never stored in code.</div>
-    </div>
-    <!-- AI Models -->
-    <div style="background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.2);border-radius:var(--rxl);padding:2rem;margin-bottom:1.25rem">
-      <h2 class="display" style="font-size:1.5rem;margin-bottom:1rem;color:#fb923c">🤖 AI Model Chain</h2>
-      <div style="display:flex;flex-direction:column;gap:.6rem">
-        <div style="display:flex;align-items:center;gap:.875rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.8rem 1rem"><span>1️⃣</span><div style="flex:1"><div style="font-weight:600;font-size:.875rem">gemini-2.5-flash-preview-05-20</div><div style="font-size:.75rem;color:var(--mu)">Primary — Latest Gemini 2.5 Flash Preview, best reasoning</div></div><span class="tag tag-gn">Primary</span></div>
-        <div style="display:flex;align-items:center;gap:.875rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.8rem 1rem"><span>2️⃣</span><div style="flex:1"><div style="font-weight:600;font-size:.875rem">gemini-2.5-flash-lite-preview-06-17</div><div style="font-size:.75rem;color:var(--mu)">Fallback 1 — Gemini 2.5 Flash Lite, faster &amp; lighter</div></div><span class="tag tag-am">Fallback 1</span></div>
-        <div style="display:flex;align-items:center;gap:.875rem;background:rgba(0,0,0,.2);border-radius:.75rem;padding:.8rem 1rem"><span>3️⃣</span><div style="flex:1"><div style="font-weight:600;font-size:.875rem">gemini-1.5-flash</div><div style="font-size:.75rem;color:var(--mu)">Fallback 2 — Stable proven model</div></div><span class="tag tag-wh">Fallback 2</span></div>
-        <div style="display:flex;align-items:center;gap:.875rem;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:.75rem;padding:.8rem 1rem"><span>4️⃣</span><div style="flex:1"><div style="font-weight:600;font-size:.875rem">Web Crawl (Wikipedia + REST APIs)</div><div style="font-size:.75rem;color:var(--mu)">Auto-activates if no API key — always works</div></div><span class="tag tag-wh">No Key</span></div>
-      </div>
-    </div>
+    
     <!-- Creator -->
     <div class="cr-card" style="margin-bottom:1.25rem">
       <div class="cr-av">👨‍💻</div>
